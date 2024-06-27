@@ -20,7 +20,8 @@ public class Cart {
 
     private LocalDateTime createAt;
 
-    @OneToOne(mappedBy = "cart")
+    @OneToOne
+    @JoinColumn(name = "userId")
     private User user;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.REMOVE, orphanRemoval = true)

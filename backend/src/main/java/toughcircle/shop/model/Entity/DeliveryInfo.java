@@ -19,7 +19,8 @@ public class DeliveryInfo {
     private String address;
     private String orderMemo;
 
-    @OneToOne(mappedBy = "deliveryInfo")
+    @OneToOne
+    @JoinColumn(name = "orderId")
     private Order order;
 
 }
