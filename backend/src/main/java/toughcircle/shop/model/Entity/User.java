@@ -18,11 +18,8 @@ public class User {
     @Column(name = "userId")
     private Long id;
 
-    @NotNull
     private String username;
-    @NotNull
     private String email;
-    @NotNull
     private String password;
 
     private String address;

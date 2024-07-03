@@ -23,6 +23,7 @@ public class Product {
     private int price;
     private int stock;
     private String mainImage;
+    private double averageScore;
 
     @ManyToOne
     @JoinColumn(name = "categoryId")
