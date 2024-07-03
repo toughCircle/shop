@@ -109,7 +109,7 @@ public class ProductController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @DeleteMapping("/search")
+    @GetMapping("/search")
     public ResponseEntity<ProductListResponse> searchProduct(@RequestHeader("Authorization") String token,
                                                              @RequestParam("query") String query) {
         // TODO: 서비스 구현
@@ -125,7 +125,7 @@ public class ProductController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @DeleteMapping("/categories/{category_id}")
+    @GetMapping("/categories/{category_id}")
     public ResponseEntity<ProductListResponse> categoryFilter(@RequestHeader("Authorization") String token,
                                                    @PathVariable("category_id") Long categoryId) {
         // TODO: 서비스 구현
