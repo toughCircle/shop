@@ -15,15 +15,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import toughcircle.shop.model.dto.LoginUserDto;
+import toughcircle.shop.model.dto.UserDto;
 import toughcircle.shop.model.dto.request.LoginRequest;
 import toughcircle.shop.model.dto.request.RegisterRequest;
 import toughcircle.shop.model.dto.request.ResetPasswordRequest;
 import toughcircle.shop.model.dto.request.UpdateUserRequest;
-import toughcircle.shop.model.dto.response.ErrorResponse;
-import toughcircle.shop.model.dto.response.LoginResponse;
-import toughcircle.shop.model.dto.response.Response;
-import toughcircle.shop.model.dto.response.UserInfoResponse;
+import toughcircle.shop.model.dto.response.*;
 import toughcircle.shop.service.UserService;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Tag(name = "User Controller", description = "사용자 관련 API입니다.")
 @RestController
@@ -80,11 +81,11 @@ public class UserController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/forgot-password")
-    public ResponseEntity<Response> forgotPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<Response> forgotPassword(@RequestBody ResetPasswordRequest request) throws BadRequestException {
 
-        // TODO: 서비스 구현
+        userService.forgetPassword(request);
 
-        Response response = new Response("Password reset link sent");
+        Response response = new Response("Password reset link sent successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -97,11 +98,11 @@ public class UserController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/reset-password")
-    public ResponseEntity<Response> resetPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<Response> resetPassword(@RequestBody ResetPasswordRequest request) throws BadRequestException {
 
-        // TODO: 서비스 구현
+        userService.resetPassword(request);
 
-        Response response = new Response("Password reset link sent");
+        Response response = new Response("Reset password successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -114,11 +115,11 @@ public class UserController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping
-    public ResponseEntity<UserInfoResponse> getUser(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<UserInfoResponse> getUser(@RequestHeader("Authorization") String token) throws BadRequestException {
 
-        // TODO: 서비스 구현, 응답값 수정
+        UserDto user = userService.getUser(token);
 
-        UserInfoResponse response = new UserInfoResponse("User info check successfully", null);
+        UserInfoResponse response = new UserInfoResponse("User info check successfully", user);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -132,9 +133,9 @@ public class UserController {
     })
     @PatchMapping
     public ResponseEntity<Response> updateUser(@RequestHeader("Authorization") String token,
-                                               @RequestBody UpdateUserRequest request) {
+                                               @RequestBody UpdateUserRequest request) throws BadRequestException {
 
-        // TODO: 서비스 구현
+        userService.updateUser(token, request);
 
         Response response = new Response("User info updated successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -149,9 +150,9 @@ public class UserController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping
-    public ResponseEntity<Response> deleteUser(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<Response> deleteUser(@RequestHeader("Authorization") String token) throws BadRequestException {
 
-        // TODO: 서비스 구현
+        userService.deleteUser(token);
 
         Response response = new Response("User info deleted successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);

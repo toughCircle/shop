@@ -12,6 +12,10 @@ public class ResetPasswordRequest {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String email;
 
+    @Schema(description = "인증 코드")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private String code;
+
     @Schema(description = "재설정 비밀번호")
     @JsonProperty("new_password")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
