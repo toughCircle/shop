@@ -7,17 +7,25 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import toughcircle.shop.model.dto.ProductDto;
 import toughcircle.shop.model.dto.response.*;
 import toughcircle.shop.model.dto.request.NewProductRequest;
+import toughcircle.shop.service.ProductService;
+
+import java.util.Collections;
+import java.util.List;
 
 @Tag(name = "Product Controller", description = "상품 관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/products")
 public class ProductController {
+
+    private final ProductService productService;
 
     // 상품 상세 정보 추가
     @Operation(summary = "상품 추가", description = "상품을 추가하기 위한 정보를 입력합니다.")
@@ -29,8 +37,9 @@ public class ProductController {
     })
     @PostMapping
     public ResponseEntity<Response> createProduct(@RequestHeader("Authorization") String token,
-                                                  NewProductRequest request) {
-        // TODO: 서비스 구현
+                                                  NewProductRequest request) throws BadRequestException {
+
+        productService.saveProduct(token, request);
 
         Response response = new Response("Product added successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -45,10 +54,19 @@ public class ProductController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping
-    public ResponseEntity<ProductListResponse> getProductList(@RequestHeader("Authorization") String token) {
-        // TODO: 서비스 구현
+    public ResponseEntity<ProductListResponse> getProductList(@RequestHeader("Authorization") String token) throws BadRequestException {
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        List<ProductDto> productList = productService.getProductList(token);
+
+        ProductListResponse response = new ProductListResponse();
+        response.setMessage("Product list");
+        if (productList.isEmpty()) {
+            response.setProductList(Collections.emptyList());
+        } else {
+            response.setProductList(productList);
+        }
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 특정 상품 조회
@@ -61,10 +79,14 @@ public class ProductController {
     })
     @GetMapping("/{product_id}")
     public ResponseEntity<ProductResponse> getProduct(@RequestHeader("Authorization") String token,
-                                                      @PathVariable("product_id") Long productId) {
-        // TODO: 서비스 구현
+                                                      @PathVariable("product_id") Long productId) throws BadRequestException {
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        ProductDto product = productService.getProduct(token, productId);
+
+        ProductResponse response = new ProductResponse();
+        response.setProduct(product);
+        response.setMessage("Product");
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 상품 상세 정보 수정
@@ -78,8 +100,8 @@ public class ProductController {
     @PatchMapping("/{product_id}")
     public ResponseEntity<Response> updateProduct(@RequestHeader("Authorization") String token,
                                                   @PathVariable("product_id") Long productId,
-                                                  @RequestBody NewProductRequest request) {
-        // TODO: 서비스 구현
+                                                  @RequestBody NewProductRequest request) throws BadRequestException {
+        productService.updateProduct(token, productId, request);
 
         Response response = new Response("Product updated successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -94,8 +116,9 @@ public class ProductController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/{product_id}")
-    public ResponseEntity<Response> deleteProduct(@RequestHeader("Authorization") String token) {
-        // TODO: 서비스 구현
+    public ResponseEntity<Response> deleteProduct(@RequestHeader("Authorization") String token,
+                                                  @PathVariable("product_id") Long productId) {
+        productService.deleteProduct(token, productId);
 
         Response response = new Response("Product deleted successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -111,10 +134,13 @@ public class ProductController {
     })
     @GetMapping("/search")
     public ResponseEntity<ProductListResponse> searchProduct(@RequestHeader("Authorization") String token,
-                                                             @RequestParam("query") String query) {
-        // TODO: 서비스 구현
+                                                             @RequestParam("query") String query) throws BadRequestException {
+        List<ProductDto> productList = productService.findByName(token, query);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        ProductListResponse response = new ProductListResponse();
+        response.setMessage("Product List");
+        response.setProductList(productList);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 카테고리 상품 조회
@@ -127,9 +153,12 @@ public class ProductController {
     })
     @GetMapping("/categories/{category_id}")
     public ResponseEntity<ProductListResponse> categoryFilter(@RequestHeader("Authorization") String token,
-                                                   @PathVariable("category_id") Long categoryId) {
-        // TODO: 서비스 구현
+                                                              @PathVariable("category_id") Long categoryId) throws BadRequestException {
+        List<ProductDto> productList = productService.categoryFilter(token, categoryId);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        ProductListResponse response = new ProductListResponse();
+        response.setMessage("Product List");
+        response.setProductList(productList);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
