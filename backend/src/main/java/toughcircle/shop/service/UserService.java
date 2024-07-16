@@ -78,6 +78,9 @@ public class UserService {
     // 로그인
     public LoginUserDto login(LoginRequest request) throws BadRequestException {
 
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        log.info(encodedPassword);
+
         User user = userRepository.findByEmail(request.getEmail());
 
         if (user == null) {
@@ -134,7 +137,9 @@ public class UserService {
             throw new BadRequestException("Invalid code.");
         }
 
-        user.setPassword(request.getNewPassword());
+        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+
+        user.setPassword(encodedPassword);
     }
 
     public UserDto getUser(String token) throws BadRequestException {
@@ -159,14 +164,17 @@ public class UserService {
             throw new BadRequestException("User not found with email: " + extractUsername);
         }
 
+        LoginUserDto response = new LoginUserDto();
+
         if (request.getOldPassword() != null && request.getNewPassword() != null) {
             // 비밀번호 확인
             boolean matches = passwordEncoder.matches(request.getOldPassword(), user.getPassword());
             if (!matches) {
                 throw new BadRequestException("Invalid Password");
             }
+            String encodedPassword = passwordEncoder.encode(request.getNewPassword());
 
-            user.setPassword(request.getNewPassword());
+            user.setPassword(encodedPassword);
         }
 
         if (request.getAddress() != null) {

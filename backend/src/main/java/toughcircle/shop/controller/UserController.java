@@ -68,8 +68,8 @@ public class UserController {
         headers.add("Authorization", userDto.getAccessToken());
         headers.add("RefreshToken", userDto.getRefreshToken());
 
-        LoginResponse response = new LoginResponse("User login successfully", null);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        LoginResponse response = new LoginResponse("User login successfully", userDto.getUser().getUserId());
+        return new ResponseEntity<>(response, headers, HttpStatus.OK);
     }
 
     // 비밀번호 찾기 (메일 전송)
