@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import toughcircle.shop.model.dto.DeliveryInfoDto;
-import toughcircle.shop.model.dto.GuestDto;
 import toughcircle.shop.model.dto.OrderItemDto;
 
 import java.util.List;
