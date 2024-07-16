@@ -1,5 +1,6 @@
 package toughcircle.shop.model.Entity;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,9 +21,13 @@ public class Order {
     private Long id;
 
     private int totalPrice;
-    private LocalDateTime orderDate;
+    private LocalDateTime createAt;
     private DeliveryStatus deliveryStatus;
     private String orderNumber;
+
+    @ManyToOne
+    @JoinColumn(name = "userId")
+    private User user;
 
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<OrderItem> orderItemList = new ArrayList<>();

@@ -18,13 +18,18 @@ public class Review {
     private Long id;
 
     @NotNull
-    private int rating;
+    private double rating;
     @NotNull
     private String comment;
     private LocalDateTime createAt;
+    private LocalDateTime updateAt;
     private String image;
 
     @ManyToOne
     @JoinColumn(name = "userId")
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "productId")
+    private Product product;
 }
