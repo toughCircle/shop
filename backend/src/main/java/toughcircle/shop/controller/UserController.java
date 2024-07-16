@@ -23,9 +23,6 @@ import toughcircle.shop.model.dto.request.UpdateUserRequest;
 import toughcircle.shop.model.dto.response.*;
 import toughcircle.shop.service.UserService;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Tag(name = "User Controller", description = "사용자 관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
