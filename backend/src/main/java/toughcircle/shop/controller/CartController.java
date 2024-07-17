@@ -7,19 +7,23 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import toughcircle.shop.model.dto.request.AddCartItemRequest;
-import toughcircle.shop.model.dto.request.NewProductRequest;
+import toughcircle.shop.model.dto.request.UpdateQuantityRequest;
 import toughcircle.shop.model.dto.response.ErrorResponse;
 import toughcircle.shop.model.dto.response.Response;
+import toughcircle.shop.service.CartService;
 
 @Tag(name = "Cart controller", description = "장바구니 관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/carts")
 public class CartController {
+
+    private final CartService cartService;
 
     // 장바구니에 상품 추가
     @Operation(summary = "장바구니에 상품 추가", description = "해당 상품을 장바구니에 추가합니다.")
@@ -32,8 +36,8 @@ public class CartController {
     @PostMapping("/{cart_id}/items")
     public ResponseEntity<Response> addCartItem(@RequestHeader("Authorization") String token,
                                                 @PathVariable("cart_id") Long cartId,
-                                                @RequestBody AddCartItemRequest request) {
-        // TODO: 서비스 구현
+                                                @RequestBody AddCartItemRequest request) throws BadRequestException {
+        cartService.saveCartItem(token, cartId, request);
 
         Response response = new Response("Item added to cart successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -47,12 +51,11 @@ public class CartController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @PatchMapping("/{cart_id}/items/{item_id}")
+    @PatchMapping("/items/{item_id}")
     public ResponseEntity<Response> updateQuantity(@RequestHeader("Authorization") String token,
-                                                   @PathVariable("cart_id") Long cartId,
                                                    @PathVariable("item_id") Long cartItemId,
-                                                   @RequestBody AddCartItemRequest request) {
-        // TODO: 서비스 구현
+                                                   @RequestBody UpdateQuantityRequest request) throws BadRequestException {
+        cartService.updateQuantity(token, cartItemId, request);
 
         Response response = new Response("Cart item updated successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -66,12 +69,10 @@ public class CartController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @DeleteMapping("/{cart_id}/items/{item_id}")
+    @DeleteMapping("/items/{item_id}")
     public ResponseEntity<Response> deleteItem(@RequestHeader("Authorization") String token,
-                                               @PathVariable("cart_id") Long cartId,
-                                               @PathVariable("item_id") Long cartItemId,
-                                               @RequestBody AddCartItemRequest request) {
-        // TODO: 서비스 구현
+                                               @PathVariable("item_id") Long cartItemId) throws BadRequestException {
+        cartService.deleteCartItem(token, cartItemId);
 
         Response response = new Response("Cart item deleted successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);

@@ -7,20 +7,27 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import toughcircle.shop.model.dto.ReviewDto;
 import toughcircle.shop.model.dto.request.NewReviewRequest;
 import toughcircle.shop.model.dto.response.ErrorResponse;
 import toughcircle.shop.model.dto.response.Response;
 import toughcircle.shop.model.dto.response.ReviewListResponse;
 import toughcircle.shop.model.dto.response.ReviewResponse;
+import toughcircle.shop.service.ReviewService;
+
+import java.util.List;
 
 @Tag(name = "Review controller", description = "상품 후기 관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
 public class ReviewController {
+
+    private final ReviewService reviewService;
 
     // 상품 후기 추가
     @Operation(summary = "상품후기 추가", description = "상품후기 추가를 위한 정보를 입력합니다.")
@@ -33,11 +40,11 @@ public class ReviewController {
     @PostMapping("/products/{product_id}/reviews")
     public ResponseEntity<Response> createReview(@RequestHeader("Authorization") String token,
                                                  @PathVariable("product_id") Long productId,
-                                                 @RequestBody NewReviewRequest request) {
-        // TODO: 서비스 구현
+                                                 @RequestBody NewReviewRequest request) throws BadRequestException {
+        reviewService.saveReview(token, productId, request);
 
         Response response = new Response("Review added successfully");
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 모든 상품 후기 조회
@@ -50,10 +57,14 @@ public class ReviewController {
     })
     @GetMapping("/products/{product_id}/reviews")
     public ResponseEntity<ReviewListResponse> getReviewList(@RequestHeader("Authorization") String token,
-                                                            @PathVariable("product_id") Long productId) {
-        // TODO: 서비스 구현
+                                                            @PathVariable("product_id") Long productId) throws BadRequestException {
+        List<ReviewDto> reviewList = reviewService.getReviewList(token, productId);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        ReviewListResponse response = new ReviewListResponse();
+        response.setMessage("Review List");
+        response.setReviewList(reviewList);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 특정 상품 후기 조회
@@ -66,10 +77,14 @@ public class ReviewController {
     })
     @GetMapping("/reviews/{review_id}")
     public ResponseEntity<ReviewResponse> getReview(@RequestHeader("Authorization") String token,
-                                                    @PathVariable("review_id") Long reviewId) {
-        // TODO: 서비스 구현
+                                                    @PathVariable("review_id") Long reviewId) throws BadRequestException {
+        ReviewDto review = reviewService.getReview(token, reviewId);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        ReviewResponse response = new ReviewResponse();
+        response.setMessage("Review");
+        response.setReview(review);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 상품 후기 수정
@@ -83,8 +98,8 @@ public class ReviewController {
     @PatchMapping("/reviews/{review_id}")
     public ResponseEntity<Response> updateReview(@RequestHeader("Authorization") String token,
                                                        @PathVariable("review_id") Long reviewId,
-                                                       @RequestBody NewReviewRequest request) {
-        // TODO: 서비스 구현
+                                                       @RequestBody NewReviewRequest request) throws BadRequestException {
+        reviewService.updateReview(token, reviewId, request);
 
         Response response = new Response("Review updated successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -101,7 +116,7 @@ public class ReviewController {
     @DeleteMapping("/reviews/{review_id}")
     public ResponseEntity<Response> deleteReview(@RequestHeader("Authorization") String token,
                                                        @PathVariable("review_id") Long reviewId) {
-        // TODO: 서비스 구현
+        reviewService.deleteReview(token, reviewId);
 
         Response response = new Response("Review deleted successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
