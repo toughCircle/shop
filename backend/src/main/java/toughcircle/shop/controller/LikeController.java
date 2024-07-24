@@ -18,7 +18,7 @@ import toughcircle.shop.service.LikeService;
 @Tag(name = "Like Controller", description = "관심상품 관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/apu/likes")
+@RequestMapping("/api/likes")
 public class LikeController {
 
     private final LikeService likeService;
@@ -31,13 +31,12 @@ public class LikeController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @DeleteMapping("/{product_id}")
+    @PostMapping("/{product_id}")
     public ResponseEntity<Response> addLike(@RequestHeader("Authorization") String token,
                                             @PathVariable("product_id") Long productId) throws BadRequestException {
 
-        likeService.addLike(token, productId);
+        Response response = likeService.addLike(token, productId);
 
-        Response response = new Response("Product liked successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
