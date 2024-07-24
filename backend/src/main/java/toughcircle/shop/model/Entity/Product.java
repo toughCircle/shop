@@ -25,7 +25,7 @@ public class Product {
     private String mainImage;
     private double averageScore;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoryId")
     private Category category;
 
