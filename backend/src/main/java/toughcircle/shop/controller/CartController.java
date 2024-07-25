@@ -11,11 +11,15 @@ import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import toughcircle.shop.model.dto.CartItemDto;
 import toughcircle.shop.model.dto.request.AddCartItemRequest;
 import toughcircle.shop.model.dto.request.UpdateQuantityRequest;
+import toughcircle.shop.model.dto.response.CartItemListResponse;
 import toughcircle.shop.model.dto.response.ErrorResponse;
 import toughcircle.shop.model.dto.response.Response;
 import toughcircle.shop.service.CartService;
+
+import java.util.List;
 
 @Tag(name = "Cart controller", description = "장바구니 관련 API입니다.")
 @RestController
@@ -75,6 +79,24 @@ public class CartController {
         cartService.deleteCartItem(token, cartItemId);
 
         Response response = new Response("Cart item deleted successfully");
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    // 장바구니 상품 조회
+    @Operation(summary = "장바구니 상품 조회", description = "장바구니 상품을 조회합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "장바구니 상품 조회 성공",
+            content = @Content(schema = @Schema(implementation = Response.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @GetMapping("/{cart_id}/items")
+    public ResponseEntity<CartItemListResponse> getCartItem(@RequestHeader("Authorization") String token,
+                                                            @PathVariable("cart_id") Long cartId) throws BadRequestException {
+        List<CartItemDto> cartItem = cartService.getCartItem(token, cartId);
+
+        CartItemListResponse response = new CartItemListResponse();
+        response.setCartItemList(cartItem);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 }
