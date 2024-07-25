@@ -6,9 +6,11 @@ import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import toughcircle.shop.model.Entity.Category;
+import toughcircle.shop.model.Entity.Product;
 import toughcircle.shop.model.dto.CategoryDto;
 import toughcircle.shop.model.dto.request.AddCategoryRequest;
 import toughcircle.shop.repository.CategoryRepository;
+import toughcircle.shop.repository.ProductRepository;
 
 import java.util.List;
 
@@ -18,6 +20,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class CategoryService {
 
+    private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
 
     @Transactional
@@ -51,7 +54,16 @@ public class CategoryService {
     }
 
     @Transactional
-    public void deleteCategory(Long categoryId) {
+    public void deleteCategory(Long categoryId) throws BadRequestException {
+        Category category = categoryRepository.findById(categoryId)
+            .orElseThrow(() -> new BadRequestException("Category not found with id: " + categoryId));
+
+        List<Product> products = category.getProductList();
+        for (Product product : products) {
+            product.setCategory(null);
+            productRepository.save(product);
+        }
+
         categoryRepository.deleteById(categoryId);
     }
 }
