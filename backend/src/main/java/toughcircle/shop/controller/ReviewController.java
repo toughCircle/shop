@@ -58,11 +58,7 @@ public class ReviewController {
     @GetMapping("/products/{product_id}/reviews")
     public ResponseEntity<ReviewListResponse> getReviewList(@RequestHeader("Authorization") String token,
                                                             @PathVariable("product_id") Long productId) throws BadRequestException {
-        List<ReviewDto> reviewList = reviewService.getReviewList(token, productId);
-
-        ReviewListResponse response = new ReviewListResponse();
-        response.setMessage("Review List");
-        response.setReviewList(reviewList);
+        ReviewListResponse response = reviewService.getReviewList(token, productId);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
