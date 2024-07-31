@@ -9,7 +9,6 @@ import toughcircle.shop.model.Entity.*;
 import toughcircle.shop.model.dto.ProductDto;
 import toughcircle.shop.model.dto.request.NewProductRequest;
 import toughcircle.shop.repository.*;
-import toughcircle.shop.security.JwtUtil;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,17 +18,17 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class ProductService {
 
     private final ProductRepository productRepository;
-    private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final LikeRepository likeRepository;
-    private final JwtUtil jwtUtil;
+    private final TokenUserService tokenUserService;
 
     @Transactional
-    public void saveProduct(String token, NewProductRequest request) throws BadRequestException {
-        User user = getUserByToken(token);
+    public Long saveProduct(String token, NewProductRequest request) throws BadRequestException {
+//        User user = tokenUserService.getUserByToken(token);
 
         Category category = categoryRepository.findById(request.getCategoryId())
             .orElseThrow(() -> new BadRequestException("Category not found with categoryId: " + request.getCategoryId()));
@@ -43,22 +42,16 @@ public class ProductService {
         product.setMainImage(request.getMainImageUrl());
         product.setAverageScore(0.0);
 
-    }
+        productRepository.save(product);
 
-    private User getUserByToken(String token) throws BadRequestException {
-        String extractUsername = jwtUtil.extractUsername(token);
-        User user = userRepository.findByEmail(extractUsername);
-        if (user == null) {
-            throw new BadRequestException("User not found with email: " + extractUsername);
-        }
-        return user;
+        return product.getId();
     }
 
     public List<ProductDto> getProductList(String token) throws BadRequestException {
-        User user = getUserByToken(token);
+        User user = tokenUserService.getUserByToken(token);
 
         List<Product> productList = productRepository.findAll();
-        List<Like> likeList = likeRepository.findByUserId(user.getId());
+        List<Like> likeList = likeRepository.findByUser_id(user.getId());
         Set<Long> likedProductIds = likeList.stream()
             .map(like -> like.getProduct().getId())
             .collect(Collectors.toSet());
@@ -85,12 +78,12 @@ public class ProductService {
     }
 
     public ProductDto getProduct(String token, Long productId) throws BadRequestException {
-        User user = getUserByToken(token);
+        User user = tokenUserService.getUserByToken(token);
 
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new BadRequestException("Product not found with productId: " + productId));
 
-        Optional<Like> like = likeRepository.findByUserIdAndProductId(user.getId(), productId);
+        Optional<Like> like = likeRepository.findByUser_idAndProduct_id(user.getId(), productId);
 
         return convertToDto(product, like.isPresent());
     }
@@ -101,14 +94,23 @@ public class ProductService {
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new BadRequestException("Product not found with productId: " + productId));
 
-        Category category = categoryRepository.findById(request.getCategoryId())
-            .orElseThrow(() -> new BadRequestException("Category not found with categoryId: " + request.getCategoryId()));
-        product.setName(request.getName());
-        product.setCategory(category);
+        if (request.getCategoryId() != null) {
+            Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new BadRequestException("Category not found with categoryId: " + request.getCategoryId()));
+            product.setCategory(category);
+        }
+        if (request.getName() != null) {
+            product.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            product.setDescription(request.getDescription());
+        }
         product.setStock(request.getStock());
         product.setPrice(request.getPrice());
-        product.setDescription(request.getDescription());
-        product.setMainImage(request.getMainImageUrl());
+
+        if (request.getMainImageUrl() != null) {
+            product.setMainImage(request.getMainImageUrl());
+        }
     }
 
     @Transactional
@@ -117,11 +119,13 @@ public class ProductService {
     }
 
     public List<ProductDto> findByName(String token, String query) throws BadRequestException {
-        User user = getUserByToken(token);
+        User user = tokenUserService.getUserByToken(token);
 
-        List<Product> productList = productRepository.findByNameContaining(query);
+        String trimmedQuery = query.trim();
 
-        List<Like> likeList = likeRepository.findByUserId(user.getId());
+        List<Product> productList = productRepository.findByNameContainingIgnoreCase(trimmedQuery);
+
+        List<Like> likeList = likeRepository.findByUser_id(user.getId());
         Set<Long> likedProductIds = likeList.stream()
             .map(like -> like.getProduct().getId())
             .collect(Collectors.toSet());
@@ -133,11 +137,11 @@ public class ProductService {
     }
 
     public List<ProductDto> categoryFilter(String token, Long categoryId) throws BadRequestException {
-        User user = getUserByToken(token);
+        User user = tokenUserService.getUserByToken(token);
 
-        List<Product> productList = productRepository.findByCategory_categoryId(categoryId);
+        List<Product> productList = productRepository.findByCategory_id(categoryId);
 
-        List<Like> likeList = likeRepository.findByUserId(user.getId());
+        List<Like> likeList = likeRepository.findByUser_id(user.getId());
         Set<Long> likedProductIds = likeList.stream()
             .map(like -> like.getProduct().getId())
             .collect(Collectors.toSet());

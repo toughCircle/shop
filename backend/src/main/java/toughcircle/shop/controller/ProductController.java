@@ -36,12 +36,14 @@ public class ProductController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping
-    public ResponseEntity<Response> createProduct(@RequestHeader("Authorization") String token,
-                                                  NewProductRequest request) throws BadRequestException {
+    public ResponseEntity<AddProductResponse> createProduct(@RequestHeader("Authorization") String token,
+                                                  @RequestBody NewProductRequest request) throws BadRequestException {
 
-        productService.saveProduct(token, request);
+        Long productId = productService.saveProduct(token, request);
 
-        Response response = new Response("Product added successfully");
+        AddProductResponse response = new AddProductResponse();
+        response.setMessage("Product added successfully");
+        response.setProductId(productId);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
