@@ -20,7 +20,7 @@ public class Order {
     private Long id;
 
     private int totalPrice;
-    private LocalDateTime createAt;
+    private LocalDateTime createdAt;
     private DeliveryStatus deliveryStatus;
     private String orderNumber;
 

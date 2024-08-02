@@ -45,10 +45,10 @@ public class OrderService {
         String orderNumber = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + "-" + UUID.randomUUID().toString();
 
         Order order = new Order();
-        order.setCreateAt(LocalDateTime.now());
+        order.setCreatedAt(LocalDateTime.now());
         order.setUser(user);
         order.setOrderNumber(orderNumber);
-        order.setCreateAt(LocalDateTime.now());
+        order.setCreatedAt(LocalDateTime.now());
         order.setDeliveryStatus(DeliveryStatus.NEW);
 
         request.getOrderItems().stream().map(orderItemDto -> {
@@ -82,10 +82,10 @@ public class OrderService {
         String orderNumber = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + "-" + UUID.randomUUID().toString();
 
         Order order = new Order();
-        order.setCreateAt(LocalDateTime.now());
+        order.setCreatedAt(LocalDateTime.now());
         order.setOrderNumber(orderNumber);
         order.setUser(null);
-        order.setCreateAt(LocalDateTime.now());
+        order.setCreatedAt(LocalDateTime.now());
         order.setDeliveryStatus(DeliveryStatus.NEW);
 
         request.getOrderItems().stream().map(orderItemDto -> {
