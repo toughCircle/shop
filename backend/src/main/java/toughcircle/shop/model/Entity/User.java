@@ -7,6 +7,9 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * User 사용자 정보를 저장합니다.
+ */
 @Entity
 @Getter @Setter
 @Table(name = "users")
@@ -20,16 +23,24 @@ public class User {
     private String username;
     private String email;
     private String password;
-
     private String address;
     private String phone;
 
+    /**
+     * 사용자가 생성한 리뷰 리스트입니다.
+     */
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Review> reviewList = new ArrayList<>();
 
+    /**
+     * 사용자의 장바구니입니다.
+     */
     @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Cart cart;
 
+    /**
+     * 사용자의 주문 내역입니다.
+     */
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Order> orderList = new ArrayList<>();
 }

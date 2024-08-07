@@ -9,6 +9,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Order 주문 정보를 저장합니다.
+ */
 @Entity
 @Getter @Setter
 @Table(name = "orders")
@@ -24,17 +27,30 @@ public class Order {
     private DeliveryStatus deliveryStatus;
     private String orderNumber;
 
-    @ManyToOne
+    /**
+     * 회원 주문을 위한 회원 정보입니다.
+     */
+    @ManyToOne(optional = true)
     @JoinColumn(name = "userId")
     private User user;
 
+    /**
+     * 주문 상품의 리스트입니다.
+     */
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<OrderItem> orderItemList = new ArrayList<>();
 
-    @ManyToOne
+    /**
+     * 비회원 주문을 위한 정보입니다.
+     */
+    @ManyToOne(optional = true)
     @JoinColumn(name = "guestId")
     private Guest guest;
 
-    @OneToOne(mappedBy = "order", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    /**
+     * 주문의 배송 정보입니다.
+     */
+    @OneToOne(optional = true, cascade = CascadeType.ALL)
+    @JoinColumn(name = "deliveryInfoId")  // 배송 정보와의 관계 설정
     private DeliveryInfo deliveryInfo;
 }

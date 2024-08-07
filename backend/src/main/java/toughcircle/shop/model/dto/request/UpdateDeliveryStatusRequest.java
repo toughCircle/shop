@@ -11,6 +11,8 @@ public class UpdateDeliveryStatusRequest {
     @Schema(description = "주문 일련번호")
     @JsonProperty("order_id")
     private Long orderId;
+
     @Schema(description = "배송 상태")
     private DeliveryStatus status;
+
 }

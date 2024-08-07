@@ -8,10 +8,10 @@ import lombok.Data;
 public class LoginRequest {
 
     @Schema(description = "로그인 메일")
-    @NotNull
+    @NotNull(message = "로그인 메일은 필수입니다.")
     private String email;
 
     @Schema(description = "로그인 비밀번호")
-    @NotNull
+    @NotNull(message = "로그인 비밀번호는 필수입니다.")
     private String password;
 }

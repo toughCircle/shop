@@ -7,6 +7,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+/**
+ * Review 리뷰 정보를 저장합니다.
+ */
 @Entity
 @Getter @Setter
 @Table(name = "reviews")
@@ -17,6 +20,9 @@ public class Review {
     @Column(name = "reviewId")
     private Long id;
 
+    /**
+     * 상품의 별점을 나타냅니다.
+     */
     @NotNull
     private double rating;
     @NotNull
@@ -26,10 +32,10 @@ public class Review {
     private String image;
 
     @ManyToOne
-    @JoinColumn(name = "userId")
+    @JoinColumn(name = "userId", nullable = false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "productId")
+    @JoinColumn(name = "productId", nullable = false)
     private Product product;
 }
