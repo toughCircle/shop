@@ -18,8 +18,6 @@ import toughcircle.shop.model.dto.response.ReviewListResponse;
 import toughcircle.shop.model.dto.response.ReviewResponse;
 import toughcircle.shop.service.ReviewService;
 
-import java.util.List;
-
 @Tag(name = "Review controller", description = "상품 후기 관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
