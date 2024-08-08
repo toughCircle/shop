@@ -147,7 +147,7 @@ public class UserService {
     /**
      * 사용자 정보 조회
      *
-     * @param token JWT 토큰
+     * @param token 사용자 토큰
      * @return UserDto 사용자 정보
      */
     public UserDto getUserInfo(String token) {
@@ -162,7 +162,7 @@ public class UserService {
 
     /**
      * 사용자 정보 수정
-     * @param token JWT 토큰
+     * @param token 사용자 토큰
      * @param request 수정 요청 정보
      */
     @Transactional
@@ -195,7 +195,7 @@ public class UserService {
 
     /**
      * 사용자 정보 삭제
-     * @param token JWT 토큰
+     * @param token 사용자 토큰
      */
     public void deleteUser(String token) {
 
