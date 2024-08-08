@@ -38,10 +38,9 @@ public class CartController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/{cart_id}/items")
-    public ResponseEntity<Response> addCartItem(@RequestHeader("Authorization") String token,
-                                                @PathVariable("cart_id") Long cartId,
-                                                @RequestBody AddCartItemRequest request) throws BadRequestException {
-        cartService.saveCartItem(token, cartId, request);
+    public ResponseEntity<Response> addCartItem(@PathVariable("cart_id") Long cartId,
+                                                @RequestBody AddCartItemRequest request) {
+        cartService.saveCartItem(cartId, request);
 
         Response response = new Response("Item added to cart successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -58,7 +57,7 @@ public class CartController {
     @PatchMapping("/items/{item_id}")
     public ResponseEntity<Response> updateQuantity(@RequestHeader("Authorization") String token,
                                                    @PathVariable("item_id") Long cartItemId,
-                                                   @RequestBody UpdateQuantityRequest request) throws BadRequestException {
+                                                   @RequestBody UpdateQuantityRequest request) {
         cartService.updateQuantity(token, cartItemId, request);
 
         Response response = new Response("Cart item updated successfully");
@@ -75,7 +74,7 @@ public class CartController {
     })
     @DeleteMapping("/items/{item_id}")
     public ResponseEntity<Response> deleteItem(@RequestHeader("Authorization") String token,
-                                               @PathVariable("item_id") Long cartItemId) throws BadRequestException {
+                                               @PathVariable("item_id") Long cartItemId) {
         cartService.deleteCartItem(token, cartItemId);
 
         Response response = new Response("Cart item deleted successfully");
@@ -92,8 +91,8 @@ public class CartController {
     })
     @GetMapping("/{cart_id}/items")
     public ResponseEntity<CartItemListResponse> getCartItem(@RequestHeader("Authorization") String token,
-                                                            @PathVariable("cart_id") Long cartId) throws BadRequestException {
-        List<CartItemDto> cartItem = cartService.getCartItem(token, cartId);
+                                                            @PathVariable("cart_id") Long cartId) {
+        List<CartItemDto> cartItem = cartService.getCartItems(token, cartId);
 
         CartItemListResponse response = new CartItemListResponse();
         response.setCartItemList(cartItem);
