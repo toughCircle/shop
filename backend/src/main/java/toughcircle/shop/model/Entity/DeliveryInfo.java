@@ -24,7 +24,9 @@ public class DeliveryInfo {
 
     private String phone;
 
-    private String address;
+    @OneToOne
+    @JoinColumn(name = "addressId")
+    private Address address;
 
     /**
      * 주문 메모를 나타냅니다.

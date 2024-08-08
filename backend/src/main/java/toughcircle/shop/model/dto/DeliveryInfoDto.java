@@ -25,7 +25,7 @@ public class DeliveryInfoDto {
 
     @Schema(description = "배송지")
     @NotBlank(message = "배송지는 필수입니다.")
-    private String address;
+    private AddressDto address;
 
     @Schema(description = "배송 메모")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
