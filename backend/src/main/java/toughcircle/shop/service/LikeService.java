@@ -28,12 +28,18 @@ public class LikeService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
 
+    /**
+     * 상품에 좋아요 추가 / 제거
+     * @param token 사용자 토큰
+     * @param productId 상품 ID
+     * @return 처리 결과 응답 메시지
+     */
     @Transactional
-    public Response addLike(String token, Long productId) throws BadRequestException {
+    public Response addLike(String token, Long productId) {
         User user = getUserByToken(token);
 
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new BadRequestException("product not found with productId: " + productId));
+            .orElseThrow(() -> new RuntimeException("product not found with productId: " + productId));
 
         Optional<Like> like = likeRepository.findByUser_idAndProduct_id(user.getId(), productId);
 
@@ -55,17 +61,16 @@ public class LikeService {
         return response;
     }
 
-    public List<Like> getLikesByUserId(Long userId) {
-        return likeRepository.findByUser_id(userId);
-    }
-
-    private User getUserByToken(String token) throws BadRequestException {
+    /**
+     * 토큰을 기반으로 사용자 정보 조회
+     * @param token 사용자 토큰
+     * @return 사용자 엔티티
+     */
+    private User getUserByToken(String token) {
         String extractUsername = jwtUtil.extractUsername(token);
 
-        User user = userRepository.findByEmail(extractUsername)
-            .orElseThrow(() -> new RuntimeException("User not found whit email: " + extractUsername));
-
-        return user;
+        return userRepository.findByEmail(extractUsername)
+            .orElseThrow(() -> new RuntimeException("User not found with emailㅈ: " + extractUsername));
     }
 
 }

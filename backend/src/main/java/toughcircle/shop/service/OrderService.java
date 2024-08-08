@@ -277,13 +277,10 @@ public class OrderService {
 
     /**
      * 상품 배송 상태 수정
-     * @param token JWT 토큰
      * @param request 배송 상태 수정 요청 정보
      * @return 주문 정보
      */
-    public OrderDto updateDeliveryStatus(String token, UpdateDeliveryStatusRequest request) {
-        User user = tokenUserService.getUserByToken(token);
-
+    public OrderDto updateDeliveryStatus(UpdateDeliveryStatusRequest request) {
         Order order = orderRepository.findById(request.getOrderId())
             .orElseThrow(() -> new RuntimeException("Order not found with id: " + request.getOrderId()));
 

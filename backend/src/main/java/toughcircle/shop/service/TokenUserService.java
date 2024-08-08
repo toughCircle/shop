@@ -16,6 +16,6 @@ public class TokenUserService {
         String extractUsername = jwtUtil.extractUsername(token);
 
         return userRepository.findByEmail(extractUsername)
-            .orElseThrow(() -> new RuntimeException("User not found whit email: " + extractUsername));
+            .orElseThrow(() -> new RuntimeException("User not found with email: " + extractUsername));
     }
 }

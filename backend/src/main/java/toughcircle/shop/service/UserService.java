@@ -87,7 +87,7 @@ public class UserService {
         log.info(encodedPassword);
 
         User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new RuntimeException("User not found whit email: " + request.getEmail()));
+            .orElseThrow(() -> new RuntimeException("User not found with email: " + request.getEmail()));
 
 
         boolean matches = passwordEncoder.matches(request.getPassword(), user.getPassword());
@@ -113,7 +113,7 @@ public class UserService {
     public void forgetPassword(ResetPasswordRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new RuntimeException("User not found whit email: " + request.getEmail()));
+            .orElseThrow(() -> new RuntimeException("User not found with email: " + request.getEmail()));
 
         String code = UUID.randomUUID().toString();
         log.debug("Reset password code: {}, email: {}", code, user.getEmail());
@@ -137,7 +137,7 @@ public class UserService {
         String email = redisService.find(request.getCode());
 
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found whit code: " + request.getCode()));
+            .orElseThrow(() -> new RuntimeException("User not found with code: " + request.getCode()));
 
         String encodedPassword = passwordEncoder.encode(request.getNewPassword());
 
@@ -155,7 +155,7 @@ public class UserService {
         String extractUsername = jwtUtil.extractUsername(token);
 
         User user = userRepository.findByEmail(extractUsername)
-            .orElseThrow(() -> new RuntimeException("User not found whit email: " + extractUsername));
+            .orElseThrow(() -> new RuntimeException("User not found with email: " + extractUsername));
 
         return convertToDto(user);
     }
@@ -202,7 +202,7 @@ public class UserService {
         String extractUsername = jwtUtil.extractUsername(token);
 
         User user = userRepository.findByEmail(extractUsername)
-            .orElseThrow(() -> new RuntimeException("User not found whit email: " + extractUsername));
+            .orElseThrow(() -> new RuntimeException("User not found with email: " + extractUsername));
 
         userRepository.delete(user);
     }
