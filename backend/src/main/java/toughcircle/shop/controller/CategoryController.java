@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -50,7 +49,7 @@ public class CategoryController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PatchMapping
-    public ResponseEntity<Response> updateCategory(@RequestBody CategoryDto request) throws BadRequestException {
+    public ResponseEntity<Response> updateCategory(@RequestBody CategoryDto request) {
         categoryService.updateCategory(request);
 
         Response response = new Response("Category updated successfully");
@@ -65,7 +64,7 @@ public class CategoryController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping
-    public ResponseEntity<List<CategoryDto>> getCategoryList() throws BadRequestException {
+    public ResponseEntity<List<CategoryDto>> getCategoryList() {
         List<CategoryDto> categoryList = categoryService.getCategoryList();
 
         return new ResponseEntity<>(categoryList, HttpStatus.CREATED);
@@ -79,7 +78,7 @@ public class CategoryController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/{category_id}")
-    public ResponseEntity<Response> deleteCategory(@PathVariable("category_id") Long categoryId) throws BadRequestException {
+    public ResponseEntity<Response> deleteCategory(@PathVariable("category_id") Long categoryId) {
         categoryService.deleteCategory(categoryId);
 
         Response response = new Response("Category updated successfully");

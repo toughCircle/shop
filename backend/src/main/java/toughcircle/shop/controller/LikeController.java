@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +32,7 @@ public class LikeController {
     })
     @PostMapping("/{product_id}")
     public ResponseEntity<Response> addLike(@RequestHeader("Authorization") String token,
-                                            @PathVariable("product_id") Long productId) throws BadRequestException {
+                                            @PathVariable("product_id") Long productId) {
 
         Response response = likeService.addLike(token, productId);
 

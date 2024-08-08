@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +33,7 @@ public class OrderController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping
-    public ResponseEntity<AddOrderResponse> addOrder(@RequestBody OrderDto request) throws BadRequestException {
+    public ResponseEntity<AddOrderResponse> addOrder(@RequestBody OrderDto request) {
 
         Long orderId = orderService.addOrder(request);
 
@@ -71,7 +70,7 @@ public class OrderController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/{order_id}")
-    public ResponseEntity<OrderResultResponse> getOrderResult(@PathVariable("order_id") Long orderId) throws BadRequestException {
+    public ResponseEntity<OrderResultResponse> getOrderResult(@PathVariable("order_id") Long orderId) {
 
         OrderResultResponse response = orderService.getOrderResult(orderId);
 
@@ -86,7 +85,7 @@ public class OrderController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/{order_id}/detail")
-    public ResponseEntity<OrderResponse> getOrderDetail(@PathVariable("order_id") Long orderId) throws BadRequestException {
+    public ResponseEntity<OrderResponse> getOrderDetail(@PathVariable("order_id") Long orderId) {
 
         OrderResponse response = orderService.getOrderDetail(orderId);
 
@@ -101,7 +100,7 @@ public class OrderController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping
-    public ResponseEntity<OrderListResponse> GetOrderList(@RequestHeader("Authorization") String token) throws BadRequestException {
+    public ResponseEntity<OrderListResponse> GetOrderList(@RequestHeader("Authorization") String token) {
 
         OrderListResponse response = orderService.getOrderList(token);
 
@@ -116,10 +115,9 @@ public class OrderController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/update-status")
-    public ResponseEntity<OrderDto> updateDeliveryStatus(@RequestHeader("Authorization") String token,
-                                                         @RequestBody UpdateDeliveryStatusRequest request) throws BadRequestException {
+    public ResponseEntity<OrderDto> updateDeliveryStatus(@RequestBody UpdateDeliveryStatusRequest request) {
 
-        OrderDto response = orderService.updateDeliveryStatus(token, request);
+        OrderDto response = orderService.updateDeliveryStatus(request);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

@@ -1,6 +1,5 @@
 package toughcircle.shop.controller;
 
-import com.nimbusds.oauth2.sdk.util.singleuse.AlreadyUsedException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -9,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,9 +38,9 @@ public class UserController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/signup")
-    public ResponseEntity<Response> signup(@Valid @RequestBody RegisterRequest request) throws AlreadyUsedException {
+    public ResponseEntity<Response> signup(@Valid @RequestBody RegisterRequest request) {
 
-        userService.saveUser(request);
+        userService.createUser(request);
 
         Response response = new Response("User registered successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -57,7 +55,7 @@ public class UserController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) throws BadRequestException {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
 
         LoginUserDto userDto = userService.login(request);
 
@@ -78,7 +76,7 @@ public class UserController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/forgot-password")
-    public ResponseEntity<Response> forgotPassword(@RequestBody ResetPasswordRequest request) throws BadRequestException {
+    public ResponseEntity<Response> forgotPassword(@RequestBody ResetPasswordRequest request) {
 
         userService.forgetPassword(request);
 
@@ -95,7 +93,7 @@ public class UserController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/reset-password")
-    public ResponseEntity<Response> resetPassword(@RequestBody ResetPasswordRequest request) throws BadRequestException {
+    public ResponseEntity<Response> resetPassword(@RequestBody ResetPasswordRequest request) {
 
         userService.resetPassword(request);
 
@@ -112,9 +110,9 @@ public class UserController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping
-    public ResponseEntity<UserInfoResponse> getUser(@RequestHeader("Authorization") String token) throws BadRequestException {
+    public ResponseEntity<UserInfoResponse> getUserInfo(@RequestHeader("Authorization") String token) {
 
-        UserDto user = userService.getUser(token);
+        UserDto user = userService.getUserInfo(token);
 
         UserInfoResponse response = new UserInfoResponse("User info check successfully", user);
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -130,7 +128,7 @@ public class UserController {
     })
     @PatchMapping
     public ResponseEntity<Response> updateUser(@RequestHeader("Authorization") String token,
-                                               @RequestBody UpdateUserRequest request) throws BadRequestException {
+                                               @RequestBody UpdateUserRequest request) {
 
         userService.updateUser(token, request);
 
@@ -147,7 +145,7 @@ public class UserController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping
-    public ResponseEntity<Response> deleteUser(@RequestHeader("Authorization") String token) throws BadRequestException {
+    public ResponseEntity<Response> deleteUser(@RequestHeader("Authorization") String token) {
 
         userService.deleteUser(token);
 

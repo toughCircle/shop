@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,10 +35,10 @@ public class ProductController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping
-    public ResponseEntity<AddProductResponse> createProduct(@RequestHeader("Authorization") String token,
-                                                  @RequestBody NewProductRequest request) throws BadRequestException {
+    public ResponseEntity<AddProductResponse> createProduct(
+        @RequestBody NewProductRequest request) {
 
-        Long productId = productService.saveProduct(token, request);
+        Long productId = productService.saveProduct(request);
 
         AddProductResponse response = new AddProductResponse();
         response.setMessage("Product added successfully");
@@ -56,7 +55,7 @@ public class ProductController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping
-    public ResponseEntity<ProductListResponse> getProductList(@RequestHeader("Authorization") String token) throws BadRequestException {
+    public ResponseEntity<ProductListResponse> getProductList(@RequestHeader("Authorization") String token) {
 
         List<ProductDto> productList = productService.getProductList(token);
 
@@ -81,7 +80,7 @@ public class ProductController {
     })
     @GetMapping("/{product_id}")
     public ResponseEntity<ProductResponse> getProduct(@RequestHeader("Authorization") String token,
-                                                      @PathVariable("product_id") Long productId) throws BadRequestException {
+                                                      @PathVariable("product_id") Long productId) {
 
         ProductDto product = productService.getProduct(token, productId);
 
@@ -100,10 +99,9 @@ public class ProductController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PatchMapping("/{product_id}")
-    public ResponseEntity<Response> updateProduct(@RequestHeader("Authorization") String token,
-                                                  @PathVariable("product_id") Long productId,
-                                                  @RequestBody NewProductRequest request) throws BadRequestException {
-        productService.updateProduct(token, productId, request);
+    public ResponseEntity<Response> updateProduct(@PathVariable("product_id") Long productId,
+                                                  @RequestBody NewProductRequest request) {
+        productService.updateProduct(productId, request);
 
         Response response = new Response("Product updated successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -118,9 +116,8 @@ public class ProductController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/{product_id}")
-    public ResponseEntity<Response> deleteProduct(@RequestHeader("Authorization") String token,
-                                                  @PathVariable("product_id") Long productId) {
-        productService.deleteProduct(token, productId);
+    public ResponseEntity<Response> deleteProduct(@PathVariable("product_id") Long productId) {
+        productService.deleteProduct(productId);
 
         Response response = new Response("Product deleted successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -136,7 +133,7 @@ public class ProductController {
     })
     @GetMapping("/search")
     public ResponseEntity<ProductListResponse> searchProduct(@RequestHeader("Authorization") String token,
-                                                             @RequestParam("query") String query) throws BadRequestException {
+                                                             @RequestParam("query") String query) {
         List<ProductDto> productList = productService.findByName(token, query);
 
         ProductListResponse response = new ProductListResponse();
@@ -155,7 +152,7 @@ public class ProductController {
     })
     @GetMapping("/categories/{category_id}")
     public ResponseEntity<ProductListResponse> categoryFilter(@RequestHeader("Authorization") String token,
-                                                              @PathVariable("category_id") Long categoryId) throws BadRequestException {
+                                                              @PathVariable("category_id") Long categoryId) {
         List<ProductDto> productList = productService.categoryFilter(token, categoryId);
 
         ProductListResponse response = new ProductListResponse();

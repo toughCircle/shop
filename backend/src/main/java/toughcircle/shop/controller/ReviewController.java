@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +39,7 @@ public class ReviewController {
     @PostMapping("/products/{product_id}/reviews")
     public ResponseEntity<Response> createReview(@RequestHeader("Authorization") String token,
                                                  @PathVariable("product_id") Long productId,
-                                                 @RequestBody NewReviewRequest request) throws BadRequestException {
+                                                 @RequestBody NewReviewRequest request) {
         reviewService.saveReview(token, productId, request);
 
         Response response = new Response("Review added successfully");
@@ -56,9 +55,8 @@ public class ReviewController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/products/{product_id}/reviews")
-    public ResponseEntity<ReviewListResponse> getReviewList(@RequestHeader("Authorization") String token,
-                                                            @PathVariable("product_id") Long productId) throws BadRequestException {
-        ReviewListResponse response = reviewService.getReviewList(token, productId);
+    public ResponseEntity<ReviewListResponse> getReviewList(@PathVariable("product_id") Long productId) {
+        ReviewListResponse response = reviewService.getReviewList(productId);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -72,9 +70,8 @@ public class ReviewController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/reviews/{review_id}")
-    public ResponseEntity<ReviewResponse> getReview(@RequestHeader("Authorization") String token,
-                                                    @PathVariable("review_id") Long reviewId) throws BadRequestException {
-        ReviewDto review = reviewService.getReview(token, reviewId);
+    public ResponseEntity<ReviewResponse> getReview(@PathVariable("review_id") Long reviewId) {
+        ReviewDto review = reviewService.getReview(reviewId);
 
         ReviewResponse response = new ReviewResponse();
         response.setMessage("Review");
@@ -92,10 +89,9 @@ public class ReviewController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PatchMapping("/reviews/{review_id}")
-    public ResponseEntity<Response> updateReview(@RequestHeader("Authorization") String token,
-                                                       @PathVariable("review_id") Long reviewId,
-                                                       @RequestBody NewReviewRequest request) throws BadRequestException {
-        reviewService.updateReview(token, reviewId, request);
+    public ResponseEntity<Response> updateReview(@PathVariable("review_id") Long reviewId,
+                                                 @RequestBody NewReviewRequest request) {
+        reviewService.updateReview(reviewId, request);
 
         Response response = new Response("Review updated successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -110,9 +106,8 @@ public class ReviewController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/reviews/{review_id}")
-    public ResponseEntity<Response> deleteReview(@RequestHeader("Authorization") String token,
-                                                       @PathVariable("review_id") Long reviewId) {
-        reviewService.deleteReview(token, reviewId);
+    public ResponseEntity<Response> deleteReview(@PathVariable("review_id") Long reviewId) {
+        reviewService.deleteReview(reviewId);
 
         Response response = new Response("Review deleted successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
