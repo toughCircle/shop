@@ -23,11 +23,16 @@ public class User {
     private String username;
     private String email;
     private String password;
-    private String address;
     private String phone;
 
     /**
-     * 사용자가 생성한 리뷰 리스트입니다.
+     * 사용자가 저장한 주소 리스트입니다.
+     */
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Address> addressList = new ArrayList<>();
+
+    /**
+     * 사용자가 작성한 리뷰 리스트입니다.
      */
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Review> reviewList = new ArrayList<>();
@@ -41,6 +46,6 @@ public class User {
     /**
      * 사용자의 주문 내역입니다.
      */
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Order> orderList = new ArrayList<>();
 }

@@ -24,13 +24,16 @@ public class Order {
 
     private int totalPrice;
     private LocalDateTime createdAt;
+
+    @Enumerated(EnumType.STRING)
     private DeliveryStatus deliveryStatus;
+
     private String orderNumber;
 
     /**
      * 회원 주문을 위한 회원 정보입니다.
      */
-    @ManyToOne(optional = true)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
     private User user;
 
@@ -43,14 +46,14 @@ public class Order {
     /**
      * 비회원 주문을 위한 정보입니다.
      */
-    @ManyToOne(optional = true)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "guestId")
     private Guest guest;
 
     /**
      * 주문의 배송 정보입니다.
      */
-    @OneToOne(optional = true, cascade = CascadeType.ALL)
-    @JoinColumn(name = "deliveryInfoId")  // 배송 정보와의 관계 설정
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "deliveryInfoId")
     private DeliveryInfo deliveryInfo;
 }
