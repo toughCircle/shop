@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
+import toughcircle.shop.model.Entity.Address;
+import toughcircle.shop.model.dto.AddressDto;
 
 @Data
 public class UpdateUserRequest {
@@ -25,5 +27,5 @@ public class UpdateUserRequest {
 
     @Schema(description = "주소 변경시 주소")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private String address;
+    private AddressDto address;
 }

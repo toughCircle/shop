@@ -6,6 +6,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import toughcircle.shop.model.Entity.Address;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -24,7 +27,7 @@ public class UserDto {
 
     @Schema(description = "기본 주소")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private String address;
+    private List<Address> addressList;
 
     @Schema(description = "연락처")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

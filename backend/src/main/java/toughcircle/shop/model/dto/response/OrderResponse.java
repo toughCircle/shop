@@ -30,6 +30,7 @@ public class OrderResponse {
     @Schema(description = "주문 총 금액")
     @JsonProperty("total_price")
     private int totalPrice;
+
     @Schema(description = "주문 상품 리스트")
     @JsonProperty("order_items")
     private List<OrderItemDto> orderItems;
