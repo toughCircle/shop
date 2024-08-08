@@ -36,7 +36,7 @@ public class CartService {
      * @param request 장바구니 상품 추가 요청 정보
      */
     @Transactional
-    public void saveCartItem(Long cartId, AddCartItemRequest request) {
+    public void createCartItem(Long cartId, AddCartItemRequest request) {
         Cart cart = cartRepository.findById(cartId)
             .orElseThrow(() -> new RuntimeException("Cart not found with cartId: " + cartId));
 
@@ -59,7 +59,8 @@ public class CartService {
     }
 
     /**
-     * 장바구니 아이템의 수량 업데이트.
+     * 장바구니 아이템의 수량 업데이트
+     * @param token 사용자 토큰
      * @param cartItemId 장바구니 아이템 ID
      * @param request 수량 업데이트 요청 정보
      */

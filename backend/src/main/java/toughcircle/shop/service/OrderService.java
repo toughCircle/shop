@@ -2,7 +2,7 @@ package toughcircle.shop.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
+import org.springframework.stereotype.Service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import toughcircle.shop.model.Entity.*;
@@ -38,12 +38,12 @@ public class OrderService {
     /**
      * 회원 주문 저장
      * @param request 회원 주문 저장 요청 정보
-     * @return 주문 일련번호
+     * @return 주문 ID
      */
     @Transactional
-    public Long addOrder(OrderDto request) throws BadRequestException {
+    public Long addOrder(OrderDto request) {
         User user = userRepository.findById(request.getUserId())
-            .orElseThrow(() -> new BadRequestException("User not found with userId: " + request.getUserId()));
+            .orElseThrow(() -> new RuntimeException("User not found with userId: " + request.getUserId()));
 
         String orderNumber = generateOrderNumber();
 
@@ -77,7 +77,7 @@ public class OrderService {
 
     /**
      * 회원 주문 생성
-     * @param user 회원 정보
+     * @param user 회원 엔티티
      * @param orderNumber 주문 번호
      * @return 주문 정보
      */
@@ -93,7 +93,7 @@ public class OrderService {
     /**
      * 비회원 주문 저장
      * @param request 비회원 주문 저장 요청 정보
-     * @return 주문 일련번호
+     * @return 주문 ID
      */
     @Transactional
     public Long addGuestOrder(OrderDto request) {
@@ -122,7 +122,7 @@ public class OrderService {
     /**
      * 비회원 주문 생성
      * @param orderNumber 주문 번호
-     * @return 주문 정보
+     * @return order 엔티티
      */
     private static Order createGuestOrder(String orderNumber) {
         Order order = new Order();
@@ -136,7 +136,7 @@ public class OrderService {
 
     /**
      * 주문 결과 조회
-     * @param orderId 주문 일련번호
+     * @param orderId 주문 ID
      * @return 주문 결과 응답 DTO [주문 상품 리스트 미포함]
      */
     public OrderResultResponse getOrderResult(Long orderId) {
@@ -162,7 +162,7 @@ public class OrderService {
 
     /**
      * 배송 정보 DTO 변환
-     * @param deliveryInfo DTO 변환 요청 정보
+     * @param deliveryInfo deliveryInfo 엔티티
      * @return 배송 정보 DTO
      */
     private DeliveryInfoDto converToDeliveryInfoDto(DeliveryInfo deliveryInfo) {
@@ -183,7 +183,7 @@ public class OrderService {
 
     /**
      * 주문 상세 내역 조회
-     * @param orderId 주문 일련번호
+     * @param orderId 주문 ID
      * @return 주문 결과 [주문 상품 리스트 포함]
      */
     public OrderResponse getOrderDetail(Long orderId) {
@@ -222,7 +222,7 @@ public class OrderService {
 
     /**
      * 주문 내역 조회
-     * @param token JWT 토큰
+     * @param token 사용자 토큰
      * @return 주문 내역 정보
      */
     public OrderListResponse getOrderList(String token) {
@@ -240,7 +240,7 @@ public class OrderService {
 
     /**
      * 주문 DTO 변환
-     * @param order DTO 변환 요청 정보
+     * @param order order 엔티티
      * @return 주문 DTO
      */
     private OrderDto convertToOrderDto(Order order) {
@@ -262,7 +262,7 @@ public class OrderService {
 
     /**
      * 비회원 DTO 변환
-     * @param guest DTO 변환 요청 정보
+     * @param guest guest 엔티티
      * @return 비회원 DTO
      */
     private GuestDto convertToGuestDto(Guest guest) {

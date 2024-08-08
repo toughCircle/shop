@@ -2,7 +2,6 @@ package toughcircle.shop.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import toughcircle.shop.model.Entity.Category;
@@ -23,6 +22,10 @@ public class CategoryService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
 
+    /**
+     * 새로운 카테고리 추가
+     * @param request 카테고리 추가 요청 정보
+     */
     @Transactional
     public void addCategory(AddCategoryRequest request) {
         Category category = new Category();
@@ -31,20 +34,33 @@ public class CategoryService {
         categoryRepository.save(category);
     }
 
+    /**
+     * 기존 카테고리 업데이트
+     * @param request 카테고리 업데이트 요청 정보
+     */
     @Transactional
-    public void updateCategory(CategoryDto request) throws BadRequestException {
+    public void updateCategory(CategoryDto request) {
         Category category = categoryRepository.findById(request.getCategoryId())
-            .orElseThrow(() -> new BadRequestException("Category not found with categoryId: " + request.getCategoryId()));
+            .orElseThrow(() -> new RuntimeException("Category not found with categoryId: " + request.getCategoryId()));
 
         category.setName(request.getName());
     }
 
+    /**
+     * 모든 카테고리 리스트 조회
+     * @return 카테고리 DTO 리스트
+     */
     public List<CategoryDto> getCategoryList() {
         List<Category> categoryList = categoryRepository.findAll();
 
         return categoryList.stream().map(this::convertToDto).toList();
     }
 
+    /**
+     * 카테고리 DTO 변환
+     * @param category 카테고리 엔티티
+     * @return 카테고리 DTO
+     */
     public CategoryDto convertToDto(Category category) {
         CategoryDto dto = new CategoryDto();
         dto.setCategoryId(category.getId());
@@ -53,10 +69,14 @@ public class CategoryService {
         return dto;
     }
 
+    /**
+     * 카테고리 삭제
+     * @param categoryId 카테고리 ID
+     */
     @Transactional
-    public void deleteCategory(Long categoryId) throws BadRequestException {
+    public void deleteCategory(Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
-            .orElseThrow(() -> new BadRequestException("Category not found with id: " + categoryId));
+            .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
 
         List<Product> products = category.getProductList();
         for (Product product : products) {

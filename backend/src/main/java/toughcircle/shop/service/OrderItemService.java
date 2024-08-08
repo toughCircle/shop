@@ -18,6 +18,12 @@ public class OrderItemService {
     private final ProductRepository productRepository;
     private final ProductService productService;
 
+    /**
+     * 주문 아이템 생성
+     * @param orderItemDtoList DTO 리스트
+     * @param order order 엔티티
+     * @return orderItem 리스트
+     */
     public List<OrderItem> createOrderItems(List<OrderItemDto> orderItemDtoList, Order order) {
         return orderItemDtoList.stream().map(orderItemDto -> {
             Product product = productRepository.findById(orderItemDto.getProduct().getProductId())

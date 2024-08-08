@@ -2,7 +2,6 @@ package toughcircle.shop.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import toughcircle.shop.model.Entity.Product;
@@ -30,10 +29,15 @@ public class ReviewService {
     private final TokenUserService tokenUserService;
     private final UserRepository userRepository;
 
-    private double calculateAverageScore(Long productId) throws BadRequestException {
+    /**
+     * 상품의 평균 점수 계산
+     * @param productId 상품 ID
+     * @return 평균 점수
+     */
+    private double calculateAverageScore(Long productId) {
 
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new BadRequestException("Product not found with productId: " + productId));
+            .orElseThrow(() -> new RuntimeException("Product not found with productId: " + productId));
 
         List<Review> reviewList = reviewRepository.findByProductId(productId);
 
@@ -51,12 +55,18 @@ public class ReviewService {
         return averageScore;
     }
 
+    /**
+     * 리뷰 저장
+     * @param token 사용자 토큰
+     * @param productId 상품 ID
+     * @param request 리뷰 요청 정보
+     */
     @Transactional
-    public void saveReview(String token, Long productId, NewReviewRequest request) throws BadRequestException {
+    public void saveReview(String token, Long productId, NewReviewRequest request) {
         User user = tokenUserService.getUserByToken(token);
 
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new BadRequestException("Product not found with productId: " + productId));
+            .orElseThrow(() -> new RuntimeException("Product not found with productId: " + productId));
 
         Review review = new Review();
         review.setUser(user);
@@ -69,41 +79,39 @@ public class ReviewService {
         reviewRepository.save(review);
 
         double averageScore = calculateAverageScore(productId);
-        log.info("ProductId: {}, averageScore: {}", productId, averageScore);
+        log.debug("ProductId: {}, averageScore: {}", productId, averageScore);
     }
 
+    /**
+     * 특정 상품의 리뷰 리스트 조회
+     * @param productId 상품 ID
+     * @return 리뷰 리스트 응답
+     */
+    public ReviewListResponse getReviewList(Long productId) {
 
-    public ReviewListResponse getReviewList(String token, Long productId) throws BadRequestException {
-
-        User user = tokenUserService.getUserByToken(token);
         List<Review> reviewList = reviewRepository.findByProductId(productId);
 
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new BadRequestException("product not found with: " + productId));
+            .orElseThrow(() -> new RuntimeException("Product not found with productId: " + productId));
 
-        if (reviewList.isEmpty()) {
-            ReviewListResponse response = new ReviewListResponse();
-            response.setMessage("Review List");
-            response.setReviewList(new ArrayList<>());
-            response.setAverageScore(0.0);
-            return response;
-        } else {
-            ReviewListResponse response = new ReviewListResponse();
-            response.setMessage("Review List");
-            response.setReviewList(reviewList.stream().map(this::convertToDto).toList());
-            response.setAverageScore(product.getAverageScore());
-            return response;
-        }
+        ReviewListResponse response = new ReviewListResponse();
+        response.setMessage("Review List");
+        response.setReviewList(reviewList.isEmpty() ? new ArrayList<>() : reviewList.stream().map(this::convertToDto).toList());
+        response.setAverageScore(product.getAverageScore());
+
+        return response;
     }
 
+    /**
+     * 리뷰 DTO 변환
+     * @param review 리뷰 엔티티
+     * @return 리뷰 DTO
+     */
     public ReviewDto convertToDto(Review review) {
-        User user = null;
-        try {
-            user = userRepository.findById(review.getUser().getId())
-                .orElseThrow(() -> new BadRequestException("User not found with userId: " + review.getUser().getId()));
-        } catch (BadRequestException e) {
-            throw new RuntimeException(e);
-        }
+
+        User user = userRepository.findById(review.getUser().getId())
+            .orElseThrow(() -> new RuntimeException("User not found with userId: " + review.getUser().getId()));
+
         ReviewDto dto = new ReviewDto();
         dto.setReviewId(review.getId());
         dto.setRating(review.getRating());
@@ -118,19 +126,27 @@ public class ReviewService {
         return dto;
     }
 
-
-    public ReviewDto getReview(String token, Long reviewId) throws BadRequestException {
-        tokenUserService.getUserByToken(token);
+    /**
+     * 특정 리뷰 조회
+     * @param reviewId 리뷰 ID
+     * @return 리뷰 DTO
+     */
+    public ReviewDto getReview(Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new BadRequestException("Review not found with reviewId: " + reviewId));
+            .orElseThrow(() -> new RuntimeException("Review not found with reviewId: " + reviewId));
 
         return convertToDto(review);
     }
 
+    /**
+     * 리뷰를 업데이트합니다.
+     * @param reviewId 리뷰 ID
+     * @param request 리뷰 요청 정보
+     */
     @Transactional
-    public void updateReview(String token, Long reviewId, NewReviewRequest request) throws BadRequestException {
+    public void updateReview(Long reviewId, NewReviewRequest request) {
         Review review = reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new BadRequestException("Review not found with reviewId: " + reviewId));
+            .orElseThrow(() -> new RuntimeException("Review not found with reviewId: " + reviewId));
 
         review.setRating(request.getRating());
         review.setImage(request.getImage());
@@ -142,8 +158,13 @@ public class ReviewService {
         calculateAverageScore(review.getProduct().getId());
     }
 
+    /**
+     * 리뷰를 삭제합니다.
+     * @param reviewId 리뷰 ID
+     */
     @Transactional
-    public void deleteReview(String token, Long reviewId) {
+    public void deleteReview(Long reviewId) {
+
         reviewRepository.deleteById(reviewId);
     }
 }

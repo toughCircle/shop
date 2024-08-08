@@ -11,6 +11,12 @@ import toughcircle.shop.model.dto.DeliveryInfoDto;
 @RequiredArgsConstructor
 public class DeliveryInfoService {
 
+    /**
+     * DTO -> 배송 정보 변환
+     * @param infoDto DTO
+     * @param order order 엔티티
+     * @return deliveryInfo 엔티티
+     */
     public DeliveryInfo createDeliveryInfo(DeliveryInfoDto infoDto, Order order) {
         Address address = new Address();
         address.setZipCode(infoDto.getAddress().getZipCode());
