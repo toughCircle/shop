@@ -61,10 +61,10 @@ public class LikeService {
 
     private User getUserByToken(String token) throws BadRequestException {
         String extractUsername = jwtUtil.extractUsername(token);
-        User user = userRepository.findByEmail(extractUsername);
-        if (user == null) {
-            throw new BadRequestException("User not found with email: " + extractUsername);
-        }
+
+        User user = userRepository.findByEmail(extractUsername)
+            .orElseThrow(() -> new RuntimeException("User not found whit email: " + extractUsername));
+
         return user;
     }
 

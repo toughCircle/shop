@@ -7,117 +7,141 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import toughcircle.shop.model.Entity.*;
 import toughcircle.shop.model.Enums.DeliveryStatus;
-import toughcircle.shop.model.dto.DeliveryInfoDto;
-import toughcircle.shop.model.dto.GuestDto;
-import toughcircle.shop.model.dto.OrderDto;
-import toughcircle.shop.model.dto.OrderItemDto;
+import toughcircle.shop.model.dto.*;
 import toughcircle.shop.model.dto.request.UpdateDeliveryStatusRequest;
 import toughcircle.shop.model.dto.response.OrderListResponse;
 import toughcircle.shop.model.dto.response.OrderResponse;
 import toughcircle.shop.model.dto.response.OrderResultResponse;
-import toughcircle.shop.repository.OrderRepository;
-import toughcircle.shop.repository.ProductRepository;
-import toughcircle.shop.repository.UserRepository;
+import toughcircle.shop.repository.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
 public class OrderService {
-    private final OrderRepository orderRepository;
-    private final ProductService productService;
-    private final TokenUserService tokenUserService;
-    private final ProductRepository productRepository;
-    private final UserRepository userRepository;
 
-    // 회원 주문
+    private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final DeliveryInfoRepository deliveryInfoRepository;
+    private final TokenUserService tokenUserService;
+    private final GuestRepository guestRepository;
+    private final UserRepository userRepository;
+    private final OrderItemService orderItemService;
+    private final DeliveryInfoService deliveryInfoService;
+    private final AddressService addressService;
+
+    /**
+     * 회원 주문 저장
+     * @param request 회원 주문 저장 요청 정보
+     * @return 주문 일련번호
+     */
     @Transactional
     public Long addOrder(OrderDto request) throws BadRequestException {
         User user = userRepository.findById(request.getUserId())
             .orElseThrow(() -> new BadRequestException("User not found with userId: " + request.getUserId()));
 
-        String orderNumber = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + "-" + UUID.randomUUID().toString();
+        String orderNumber = generateOrderNumber();
 
-        Order order = new Order();
-        order.setCreatedAt(LocalDateTime.now());
-        order.setUser(user);
-        order.setOrderNumber(orderNumber);
-        order.setCreatedAt(LocalDateTime.now());
-        order.setDeliveryStatus(DeliveryStatus.NEW);
+        Order order = createUserOrder(user, orderNumber);
 
-        request.getOrderItems().stream().map(orderItemDto -> {
-            Product product = productRepository.findById(orderItemDto.getProduct().getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setProduct(product);
-            orderItem.setQuantity(orderItemDto.getQuantity());
-            orderItem.setTotalPrice(orderItemDto.getTotalPrice());
-            return orderItem;
-        }).collect(Collectors.toList());
-
-        DeliveryInfo deliveryInfo = new DeliveryInfo();
-        deliveryInfo.setOrder(order);
-        deliveryInfo.setOrderMemo(request.getDeliveryInfo().getOrderMemo());
-        deliveryInfo.setPhone(request.getDeliveryInfo().getPhone());
-        deliveryInfo.setAddress(request.getDeliveryInfo().getAddress());
-        deliveryInfo.setRecipientName(request.getDeliveryInfo().getRecipientName());
+        List<OrderItem> orderItems = orderItemService
+            .createOrderItems(request.getOrderItems(), order);
+        DeliveryInfo deliveryInfo = deliveryInfoService
+            .createDeliveryInfo(request.getDeliveryInfo(), order);
 
         if (request.isSaveAddressInfo()) {
-            user.setAddress(request.getDeliveryInfo().getAddress());
+            addressService.saveAddressInfo(user, request.getDeliveryInfo().getAddress());
         }
+
+        orderRepository.save(order);
+        orderItemRepository.saveAll(orderItems);
+        deliveryInfoRepository.save(deliveryInfo);
 
         return order.getId();
     }
 
-    // 비회원 주문
-    @Transactional
-    public Long addGuestOrder(OrderDto request) {
-        String orderNumber = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + "-" + UUID.randomUUID().toString();
+    /**
+     * 주문 번호 생성
+     * @return 주문 번호
+     */
+    private String generateOrderNumber() {
+        return LocalDateTime.now()
+            .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+            + "-" + UUID.randomUUID();
+    }
 
+    /**
+     * 회원 주문 생성
+     * @param user 회원 정보
+     * @param orderNumber 주문 번호
+     * @return 주문 정보
+     */
+    private Order createUserOrder(User user, String orderNumber) {
         Order order = new Order();
         order.setCreatedAt(LocalDateTime.now());
+        order.setUser(user);
         order.setOrderNumber(orderNumber);
-        order.setUser(null);
-        order.setCreatedAt(LocalDateTime.now());
         order.setDeliveryStatus(DeliveryStatus.NEW);
+        return order;
+    }
 
-        request.getOrderItems().stream().map(orderItemDto -> {
-            Product product = productRepository.findById(orderItemDto.getProduct().getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setProduct(product);
-            orderItem.setQuantity(orderItemDto.getQuantity());
-            orderItem.setTotalPrice(orderItemDto.getTotalPrice());
-            return orderItem;
-        }).collect(Collectors.toList());
+    /**
+     * 비회원 주문 저장
+     * @param request 비회원 주문 저장 요청 정보
+     * @return 주문 일련번호
+     */
+    @Transactional
+    public Long addGuestOrder(OrderDto request) {
+
+        String orderNumber = generateOrderNumber();
+
+        Order order = createGuestOrder(orderNumber);
+
+        List<OrderItem> orderItems = orderItemService.createOrderItems(request.getOrderItems(), order);
 
         Guest guest = new Guest();
         guest.setName(request.getGuestInfo().getName());
         guest.setPhone(request.getGuestInfo().getPhone());
         guest.setEmail(request.getGuestInfo().getEmail());
 
-        DeliveryInfo deliveryInfo = new DeliveryInfo();
-        deliveryInfo.setOrder(order);
-        deliveryInfo.setOrderMemo(request.getDeliveryInfo().getOrderMemo());
-        deliveryInfo.setPhone(request.getDeliveryInfo().getPhone());
-        deliveryInfo.setAddress(request.getDeliveryInfo().getAddress());
-        deliveryInfo.setRecipientName(request.getDeliveryInfo().getRecipientName());
+        DeliveryInfo deliveryInfo = deliveryInfoService
+            .createDeliveryInfo(request.getDeliveryInfo(), order);
+
+        deliveryInfoRepository.save(deliveryInfo);
+        orderItemRepository.saveAll(orderItems);
+        guestRepository.save(guest);
 
         return order.getId();
     }
 
-    // 주문 결과 조회
-    public OrderResultResponse getOrderResult(Long orderId) throws BadRequestException {
+    /**
+     * 비회원 주문 생성
+     * @param orderNumber 주문 번호
+     * @return 주문 정보
+     */
+    private static Order createGuestOrder(String orderNumber) {
+        Order order = new Order();
+        order.setCreatedAt(LocalDateTime.now());
+        order.setOrderNumber(orderNumber);
+        order.setUser(null);
+        order.setCreatedAt(LocalDateTime.now());
+        order.setDeliveryStatus(DeliveryStatus.NEW);
+        return order;
+    }
+
+    /**
+     * 주문 결과 조회
+     * @param orderId 주문 일련번호
+     * @return 주문 결과 응답 DTO [주문 상품 리스트 미포함]
+     */
+    public OrderResultResponse getOrderResult(Long orderId) {
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new BadRequestException("Order not found with orderId: " + orderId));
+            .orElseThrow(() -> new RuntimeException("Order not found with orderId: " + orderId));
 
         OrderResultResponse response = new OrderResultResponse();
 
@@ -126,7 +150,6 @@ public class OrderService {
         if (order.getUser() != null) {
             response.setUserId(order.getUser().getId());
         }
-
         if (order.getGuest() != null) {
             response.setGuestId(order.getGuest().getId());
         }
@@ -137,27 +160,50 @@ public class OrderService {
         return response;
     }
 
+    /**
+     * 배송 정보 DTO 변환
+     * @param deliveryInfo DTO 변환 요청 정보
+     * @return 배송 정보 DTO
+     */
     private DeliveryInfoDto converToDeliveryInfoDto(DeliveryInfo deliveryInfo) {
+        AddressDto addressDto = new AddressDto();
+        addressDto.setZipCode(deliveryInfo.getAddress().getZipCode());
+        addressDto.setStreetAddress(deliveryInfo.getAddress().getStreetAddress());
+        addressDto.setAddressDetail(deliveryInfo.getAddress().getAddressDetail());
+        addressDto.setAddressType(deliveryInfo.getAddress().getAddressType());
+
         DeliveryInfoDto dto = new DeliveryInfoDto();
         dto.setRecipientName(deliveryInfo.getRecipientName());
-        dto.setAddress(deliveryInfo.getAddress());
+        dto.setAddress(addressDto);
         dto.setPhone(deliveryInfo.getPhone());
         dto.setOrderMemo(deliveryInfo.getOrderMemo());
 
         return dto;
     }
 
-    public OrderResponse getOrderDetail(Long orderId) throws BadRequestException {
+    /**
+     * 주문 상세 내역 조회
+     * @param orderId 주문 일련번호
+     * @return 주문 결과 [주문 상품 리스트 포함]
+     */
+    public OrderResponse getOrderDetail(Long orderId) {
 
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new BadRequestException("Order not found with orderId: " + orderId));
+            .orElseThrow(() -> new RuntimeException("Order not found with orderId: " + orderId));
 
         return getOrderResponse(order);
     }
 
+    /**
+     * 주문 응답값 변환
+     * @param order 변환 요청 정보 [주문 정보]
+     * @return 주문 응답 DTO
+     */
     private OrderResponse getOrderResponse(Order order) {
 
-        List<OrderItemDto> orderItemList = order.getOrderItemList().stream().map(this::convertToOrderItemDto).toList();
+        List<OrderItemDto> orderItemList = order.getOrderItemList()
+            .stream().map(orderItemService::convertToOrderItemDto)
+            .toList();
 
         OrderResponse response = new OrderResponse();
         response.setOrderId(order.getId());
@@ -172,17 +218,14 @@ public class OrderService {
         return response;
     }
 
-    public OrderItemDto convertToOrderItemDto(OrderItem orderItem) {
-        OrderItemDto dto = new OrderItemDto();
-        dto.setOrderItemId(orderItem.getId());
-        dto.setProduct(productService.convertToDto(orderItem.getProduct(), false));
-        dto.setQuantity(orderItem.getQuantity());
-        dto.setTotalPrice(orderItem.getTotalPrice());
 
-        return dto;
-    }
 
-    public OrderListResponse getOrderList(String token) throws BadRequestException {
+    /**
+     * 주문 내역 조회
+     * @param token JWT 토큰
+     * @return 주문 내역 정보
+     */
+    public OrderListResponse getOrderList(String token) {
         User user = tokenUserService.getUserByToken(token);
 
         List<Order> orderList = orderRepository.findByUser_id(user.getId());
@@ -195,9 +238,16 @@ public class OrderService {
         return response;
     }
 
+    /**
+     * 주문 DTO 변환
+     * @param order DTO 변환 요청 정보
+     * @return 주문 DTO
+     */
     private OrderDto convertToOrderDto(Order order) {
 
-        List<OrderItemDto> orderItemList = order.getOrderItemList().stream().map(this::convertToOrderItemDto).toList();
+        List<OrderItemDto> orderItemList = order.getOrderItemList()
+            .stream().map(orderItemService::convertToOrderItemDto)
+            .toList();
 
         OrderDto dto = new OrderDto();
         dto.setUserId(order.getUser().getId());
@@ -210,6 +260,11 @@ public class OrderService {
         return dto;
     }
 
+    /**
+     * 비회원 DTO 변환
+     * @param guest DTO 변환 요청 정보
+     * @return 비회원 DTO
+     */
     private GuestDto convertToGuestDto(Guest guest) {
         GuestDto dto = new GuestDto();
         dto.setGuestId(guest.getId());
@@ -220,11 +275,17 @@ public class OrderService {
         return dto;
     }
 
-    public OrderDto updateDeliveryStatus(String token, UpdateDeliveryStatusRequest request) throws BadRequestException {
+    /**
+     * 상품 배송 상태 수정
+     * @param token JWT 토큰
+     * @param request 배송 상태 수정 요청 정보
+     * @return 주문 정보
+     */
+    public OrderDto updateDeliveryStatus(String token, UpdateDeliveryStatusRequest request) {
         User user = tokenUserService.getUserByToken(token);
 
         Order order = orderRepository.findById(request.getOrderId())
-            .orElseThrow(() -> new BadRequestException("Order not found with id: " + request.getOrderId()));
+            .orElseThrow(() -> new RuntimeException("Order not found with id: " + request.getOrderId()));
 
         order.setDeliveryStatus(request.getStatus());
 

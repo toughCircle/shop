@@ -2,7 +2,6 @@ package toughcircle.shop.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import toughcircle.shop.model.Entity.*;
@@ -26,12 +25,16 @@ public class ProductService {
     private final LikeRepository likeRepository;
     private final TokenUserService tokenUserService;
 
+    /**
+     * 새로운 상품 저장
+     * @param request 상품 요청 정보
+     * @return 저장된 상품의 ID
+     */
     @Transactional
-    public Long saveProduct(String token, NewProductRequest request) throws BadRequestException {
-//        User user = tokenUserService.getUserByToken(token);
+    public Long saveProduct(NewProductRequest request) {
 
         Category category = categoryRepository.findById(request.getCategoryId())
-            .orElseThrow(() -> new BadRequestException("Category not found with categoryId: " + request.getCategoryId()));
+            .orElseThrow(() -> new RuntimeException("Category not found with categoryId: " + request.getCategoryId()));
 
         Product product = new Product();
         product.setName(request.getName());
@@ -47,7 +50,12 @@ public class ProductService {
         return product.getId();
     }
 
-    public List<ProductDto> getProductList(String token) throws BadRequestException {
+    /**
+     * 사용자 토큰을 기반으로 상품 리스트 조회
+     * @param token 사용자 토큰
+     * @return 상품 DTO 리스트
+     */
+    public List<ProductDto> getProductList(String token) {
         User user = tokenUserService.getUserByToken(token);
 
         List<Product> productList = productRepository.findAll();
@@ -62,6 +70,12 @@ public class ProductService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 상품 DTO 변환
+     * @param product 상품 엔티티
+     * @param liked 사용자가 좋아요를 눌렀는지 여부
+     * @return 상품 DTO
+     */
     public ProductDto convertToDto(Product product, boolean liked) {
         ProductDto productDto = new ProductDto();
         productDto.setProductId(product.getId());
@@ -77,26 +91,37 @@ public class ProductService {
         return productDto;
     }
 
-    public ProductDto getProduct(String token, Long productId) throws BadRequestException {
+    /**
+     * 특정 상품 조회
+     * @param token 사용자 토큰
+     * @param productId 상품 ID
+     * @return 상품 DTO
+     */
+    public ProductDto getProduct(String token, Long productId) {
         User user = tokenUserService.getUserByToken(token);
 
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new BadRequestException("Product not found with productId: " + productId));
+            .orElseThrow(() -> new RuntimeException("Product not found with productId: " + productId));
 
         Optional<Like> like = likeRepository.findByUser_idAndProduct_id(user.getId(), productId);
 
         return convertToDto(product, like.isPresent());
     }
 
+    /**
+     * 상품 정보 업데이트
+     * @param productId 상품 ID
+     * @param request 업데이트할 상품 정보
+     */
     @Transactional
-    public void updateProduct(String token, Long productId, NewProductRequest request) throws BadRequestException {
+    public void updateProduct(Long productId, NewProductRequest request) {
 
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new BadRequestException("Product not found with productId: " + productId));
+            .orElseThrow(() -> new RuntimeException("Product not found with productId: " + productId));
 
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new BadRequestException("Category not found with categoryId: " + request.getCategoryId()));
+                .orElseThrow(() -> new RuntimeException("Category not found with categoryId: " + request.getCategoryId()));
             product.setCategory(category);
         }
         if (request.getName() != null) {
@@ -111,14 +136,25 @@ public class ProductService {
         if (request.getMainImageUrl() != null) {
             product.setMainImage(request.getMainImageUrl());
         }
+        productRepository.save(product);
     }
 
+    /**
+     * 상품 삭제
+     * @param productId 상품 ID
+     */
     @Transactional
-    public void deleteProduct(String token, Long productId) {
+    public void deleteProduct(Long productId) {
         productRepository.deleteById(productId);
     }
 
-    public List<ProductDto> findByName(String token, String query) throws BadRequestException {
+    /**
+     * 이름으로 상품 검색
+     * @param token 사용자 토큰
+     * @param query 검색어
+     * @return 검색된 상품 DTO 리스트
+     */
+    public List<ProductDto> findByName(String token, String query) {
         User user = tokenUserService.getUserByToken(token);
 
         String trimmedQuery = query.trim();
@@ -136,7 +172,13 @@ public class ProductService {
         }).collect(Collectors.toList());
     }
 
-    public List<ProductDto> categoryFilter(String token, Long categoryId) throws BadRequestException {
+    /**
+     * 카테고리로 상품 필터링
+     * @param token 사용자 토큰
+     * @param categoryId 카테고리 ID
+     * @return 필터링된 상품 DTO 리스트
+     */
+    public List<ProductDto> categoryFilter(String token, Long categoryId) {
         User user = tokenUserService.getUserByToken(token);
 
         List<Product> productList = productRepository.findByCategory_id(categoryId);

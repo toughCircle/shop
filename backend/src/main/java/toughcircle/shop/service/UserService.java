@@ -1,9 +1,7 @@
 package toughcircle.shop.service;
 
-import com.nimbusds.oauth2.sdk.util.singleuse.AlreadyUsedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,14 +33,17 @@ public class UserService {
     private final MailService mailService;
     private final RedisService redisService;
     private final JwtUtil jwtUtil;
+    private final AddressService addressService;
 
-    // 사용자 정보 저장
+    /**
+     * 사용자 생성
+     * @param request 회원가입 요청 정보
+     */
     @Transactional
-    public void saveUser(RegisterRequest request) throws AlreadyUsedException {
+    public void createUser(RegisterRequest request) {
 
-        User userByEmail = userRepository.findByEmail(request.getEmail());
-        if (userByEmail != null) {
-            throw new AlreadyUsedException("A email that already exists.");
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("User already exists");
         }
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
@@ -54,7 +55,7 @@ public class UserService {
 
         userRepository.save(user);
 
-        // 장바구니 생성
+        // 회원가입 시 해당 사용자의 장바구니 생성
         Cart cart = new Cart();
         cart.setUser(user);
         cart.setCreateAt(LocalDateTime.now());
@@ -69,28 +70,29 @@ public class UserService {
         userDto.setUserId(user.getId());
         userDto.setUsername(user.getUsername());
         userDto.setEmail(user.getEmail());
-        userDto.setAddress(user.getAddress());
+        userDto.setAddressList(user.getAddressList());
         userDto.setPhone(user.getPhone());
 
         return userDto;
     }
 
-    // 로그인
-    public LoginUserDto login(LoginRequest request) throws BadRequestException {
+    /**
+     * 로그인
+     * @param request 로그인 요청 정보
+     * @return id, token 정보
+     */
+    public LoginUserDto login(LoginRequest request){
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         log.info(encodedPassword);
 
-        User user = userRepository.findByEmail(request.getEmail());
+        User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> new RuntimeException("User not found whit email: " + request.getEmail()));
 
-        if (user == null) {
-            throw new BadRequestException("User not found");
-        }
 
         boolean matches = passwordEncoder.matches(request.getPassword(), user.getPassword());
-
         if (!matches) {
-            throw new BadRequestException("Invalid Password");
+            throw new RuntimeException("Invalid Password");
         }
 
         String accessToken = jwtUtil.generateToken(request.getEmail());
@@ -104,17 +106,17 @@ public class UserService {
         return response;
     }
 
-    // 비밀번호 재설정 메일 전송
-    public void forgetPassword(ResetPasswordRequest request) throws BadRequestException {
+    /**
+     * 비밀번호 재설정 메일 요청
+     * @param request 비밀번호 재설정 메일 요청 정보 [email]
+     */
+    public void forgetPassword(ResetPasswordRequest request) {
 
-        User userByEmail = userRepository.findByEmail(request.getEmail());
-
-        if (userByEmail == null) {
-            throw new BadRequestException("Invalid Email");
-        }
+        User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> new RuntimeException("User not found whit email: " + request.getEmail()));
 
         String code = UUID.randomUUID().toString();
-        log.info("Reset password code: {}",code);
+        log.debug("Reset password code: {}, email: {}", code, user.getEmail());
 
         redisService.save(code, request.getEmail(), 30, TimeUnit.MINUTES);
 
@@ -124,71 +126,84 @@ public class UserService {
 
         mailService.sendMail(request.getEmail(), "SHOP SERVICE 비밀번호 재설정", htmlContent);
     }
-    
 
-    // 비밀번호 재설정
+    /**
+     * 비밀번호 재설정
+     * @param request 비밀번호 재설정 요청 정보 [이전 비밀번호, 새로운 비밀번호]
+     */
     @Transactional
-    public void resetPassword(ResetPasswordRequest request) throws BadRequestException {
+    public void resetPassword(ResetPasswordRequest request) {
 
         String email = redisService.find(request.getCode());
 
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new BadRequestException("Invalid code.");
-        }
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found whit code: " + request.getCode()));
 
         String encodedPassword = passwordEncoder.encode(request.getNewPassword());
 
         user.setPassword(encodedPassword);
     }
 
-    public UserDto getUser(String token) throws BadRequestException {
+    /**
+     * 사용자 정보 조회
+     *
+     * @param token JWT 토큰
+     * @return UserDto 사용자 정보
+     */
+    public UserDto getUserInfo(String token) {
 
         String extractUsername = jwtUtil.extractUsername(token);
 
-        User user = userRepository.findByEmail(extractUsername);
-        if (user == null) {
-            throw new BadRequestException("User not found with email: " + extractUsername);
-        }
+        User user = userRepository.findByEmail(extractUsername)
+            .orElseThrow(() -> new RuntimeException("User not found whit email: " + extractUsername));
 
         return convertToDto(user);
     }
 
+    /**
+     * 사용자 정보 수정
+     * @param token JWT 토큰
+     * @param request 수정 요청 정보
+     */
     @Transactional
-    public void updateUser(String token, UpdateUserRequest request) throws BadRequestException {
+    public void updateUser(String token, UpdateUserRequest request) {
 
-        String extractUsername = jwtUtil.extractUsername(token);
+        String username = jwtUtil.extractUsername(token);
 
-        User user = userRepository.findByEmail(extractUsername);
-        if (user == null) {
-            throw new BadRequestException("User not found with email: " + extractUsername);
-        }
+        User user = userRepository.findByEmail(username)
+            .orElseThrow(() -> new RuntimeException("User not found with email: " + username));
 
-        LoginUserDto response = new LoginUserDto();
-
+        // 비밀번호 수정 정보가 포함되어있을 경우 비밀번호 수정
         if (request.getOldPassword() != null && request.getNewPassword() != null) {
             // 비밀번호 확인
             boolean matches = passwordEncoder.matches(request.getOldPassword(), user.getPassword());
             if (!matches) {
-                throw new BadRequestException("Invalid Password");
+                throw new RuntimeException("Invalid Password");
             }
-            String encodedPassword = passwordEncoder.encode(request.getNewPassword());
 
+            String encodedPassword = passwordEncoder.encode(request.getNewPassword());
             user.setPassword(encodedPassword);
         }
 
+        // 주소 수정 정보가 포함되어있을 경우
         if (request.getAddress() != null) {
-            user.setAddress(request.getAddress());
+            addressService.saveAddressInfo(user, request.getAddress());
         }
+
+        userRepository.save(user);
     }
 
-    public void deleteUser(String token) throws BadRequestException {
+    /**
+     * 사용자 정보 삭제
+     * @param token JWT 토큰
+     */
+    public void deleteUser(String token) {
 
         String extractUsername = jwtUtil.extractUsername(token);
-        User user = userRepository.findByEmail(extractUsername);
-        if (user == null) {
-            throw new BadRequestException("User not found with email: " + extractUsername);
-        }
+
+        User user = userRepository.findByEmail(extractUsername)
+            .orElseThrow(() -> new RuntimeException("User not found whit email: " + extractUsername));
+
         userRepository.delete(user);
     }
 }

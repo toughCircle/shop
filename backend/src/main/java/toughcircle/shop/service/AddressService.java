@@ -2,6 +2,7 @@ package toughcircle.shop.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import toughcircle.shop.model.Entity.Address;
 import toughcircle.shop.model.Entity.User;
 import toughcircle.shop.model.dto.AddressDto;
@@ -21,6 +22,7 @@ public class AddressService {
      * @param user 사용자 정보
      * @param addressRequest 주소 정보
      */
+    @Transactional
     public void saveAddressInfo(User user, AddressDto addressRequest) {
         Optional<Address> existingAddress = addressRepository.findByAddressInfo(
             addressRequest.getZipCode(),
@@ -42,7 +44,8 @@ public class AddressService {
         if (user.getAddressList() == null) {
             user.setAddressList(new ArrayList<>());
         }
-        user.getAddressList().add(address);
-
+        if (!user.getAddressList().contains(address)) {
+            user.getAddressList().add(address);
+        }
     }
 }

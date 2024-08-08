@@ -1,7 +1,6 @@
 package toughcircle.shop.service;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 import toughcircle.shop.model.Entity.User;
 import toughcircle.shop.repository.UserRepository;
@@ -13,12 +12,10 @@ public class TokenUserService {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
-    public User getUserByToken(String token) throws BadRequestException {
+    public User getUserByToken(String token) {
         String extractUsername = jwtUtil.extractUsername(token);
-        User user = userRepository.findByEmail(extractUsername);
-        if (user == null) {
-            throw new BadRequestException("User not found with email: " + extractUsername);
-        }
-        return user;
+
+        return userRepository.findByEmail(extractUsername)
+            .orElseThrow(() -> new RuntimeException("User not found whit email: " + extractUsername));
     }
 }
