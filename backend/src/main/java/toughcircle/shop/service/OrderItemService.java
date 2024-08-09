@@ -2,6 +2,7 @@ package toughcircle.shop.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import toughcircle.shop.exception.exceptions.NotFoundException;
 import toughcircle.shop.model.Entity.Order;
 import toughcircle.shop.model.Entity.OrderItem;
 import toughcircle.shop.model.Entity.Product;
@@ -27,7 +28,7 @@ public class OrderItemService {
     public List<OrderItem> createOrderItems(List<OrderItemDto> orderItemDtoList, Order order) {
         return orderItemDtoList.stream().map(orderItemDto -> {
             Product product = productRepository.findById(orderItemDto.getProduct().getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new NotFoundException("Product not found with productId: " + orderItemDto.getProduct().getProductId()));
 
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);

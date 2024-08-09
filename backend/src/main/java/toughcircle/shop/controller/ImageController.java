@@ -36,20 +36,16 @@ public class ImageController {
         }
 
         try {
-            // Generate a unique file name
             String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
             Path filePath = Paths.get(uploadPath, fileName);
 
-            // Ensure the upload directory exists
             File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
+                boolean mkdir = uploadDir.mkdirs();
             }
 
-            // Save the file to the server
             Files.write(filePath, file.getBytes());
 
-            // Return the file URL
             String fileUrl = "/uploads/" + fileName;
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (IOException e) {

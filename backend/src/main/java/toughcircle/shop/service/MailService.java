@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import toughcircle.shop.exception.exceptions.EmailSendException;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class MailService {
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
         } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send email", e);
+            throw new EmailSendException("Failed to send email", e);
         }
         mailSender.send(message);
     }

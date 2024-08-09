@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import toughcircle.shop.exception.exceptions.NotFoundException;
+import toughcircle.shop.exception.exceptions.UnauthorizedException;
 import toughcircle.shop.model.Entity.Cart;
 import toughcircle.shop.model.Entity.CartItem;
 import toughcircle.shop.model.Entity.Product;
@@ -38,10 +40,10 @@ public class CartService {
     @Transactional
     public void createCartItem(Long cartId, AddCartItemRequest request) {
         Cart cart = cartRepository.findById(cartId)
-            .orElseThrow(() -> new RuntimeException("Cart not found with cartId: " + cartId));
+            .orElseThrow(() -> new NotFoundException("Cart not found with cartId: " + cartId));
 
         Product product = productRepository.findById(request.getProductId())
-            .orElseThrow(() -> new RuntimeException("Product not found with productId: " + request.getProductId()));
+            .orElseThrow(() -> new NotFoundException("Product not found with productId: " + request.getProductId()));
 
         CartItem item = cartItemRepository.findByCart_idAndProduct_id(cartId, request.getProductId());
         if (item != null) {
@@ -69,13 +71,13 @@ public class CartService {
         User user = tokenUserService.getUserByToken(token);
 
         CartItem cartItem = cartItemRepository.findById(cartItemId)
-            .orElseThrow(() -> new RuntimeException("CartItem not found with cartItemId: " + cartItemId));
+            .orElseThrow(() -> new NotFoundException("CartItem not found with cartItemId: " + cartItemId));
 
         if (Objects.equals(cartItem.getCart().getId(), user.getCart().getId())) {
             cartItem.setQuantity(request.getQuantity());
             cartItemRepository.save(cartItem);
         } else {
-            throw new RuntimeException("User is not authorized to update this cart item.");
+            throw new UnauthorizedException("User is not authorized to update this cart item.");
         }
     }
 
@@ -88,12 +90,12 @@ public class CartService {
         User user = tokenUserService.getUserByToken(token);
 
         CartItem cartItem = cartItemRepository.findById(cartItemId)
-            .orElseThrow(() -> new RuntimeException("CartItem not found with cartItemId: " + cartItemId));
+            .orElseThrow(() -> new NotFoundException("CartItem not found with cartItemId: " + cartItemId));
 
         if (Objects.equals(cartItem.getCart().getId(), user.getCart().getId())) {
             cartItemRepository.deleteById(cartItemId);
         } else {
-            throw new RuntimeException("User is not authorized to delete this cart item.");
+            throw new UnauthorizedException("User is not authorized to delete this cart item.");
         }
 
     }
@@ -108,13 +110,13 @@ public class CartService {
         User user = tokenUserService.getUserByToken(token);
 
         Cart cart = cartRepository.findById(cartId)
-            .orElseThrow(() -> new RuntimeException("Cart not found with cartId: " + cartId));
+            .orElseThrow(() -> new NotFoundException("Cart not found with cartId: " + cartId));
 
         if (Objects.equals(cart.getId(), user.getCart().getId())) {
             List<CartItem> cartItems = cart.getCartItemList();
             return cartItems.stream().map(this::convertToDto).toList();
         } else {
-            throw new RuntimeException("User is not authorized to view this cart.");
+            throw new UnauthorizedException("User is not authorized to view this cart.");
         }
     }
 

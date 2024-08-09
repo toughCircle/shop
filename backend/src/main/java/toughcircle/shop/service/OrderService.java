@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import toughcircle.shop.exception.exceptions.NotFoundException;
 import toughcircle.shop.model.Entity.*;
 import toughcircle.shop.model.Enums.DeliveryStatus;
 import toughcircle.shop.model.dto.*;
@@ -42,7 +43,7 @@ public class OrderService {
     @Transactional
     public Long addOrder(OrderDto request) {
         User user = userRepository.findById(request.getUserId())
-            .orElseThrow(() -> new RuntimeException("User not found with userId: " + request.getUserId()));
+            .orElseThrow(() -> new NotFoundException("User not found with userId: " + request.getUserId()));
 
         String orderNumber = generateOrderNumber();
 
@@ -140,7 +141,7 @@ public class OrderService {
      */
     public OrderResultResponse getOrderResult(Long orderId) {
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException("Order not found with orderId: " + orderId));
+            .orElseThrow(() -> new NotFoundException("Order not found with orderId: " + orderId));
 
         OrderResultResponse response = new OrderResultResponse();
 
@@ -188,7 +189,7 @@ public class OrderService {
     public OrderResponse getOrderDetail(Long orderId) {
 
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException("Order not found with orderId: " + orderId));
+            .orElseThrow(() -> new NotFoundException("Order not found with orderId: " + orderId));
 
         return getOrderResponse(order);
     }
@@ -281,7 +282,7 @@ public class OrderService {
      */
     public OrderDto updateDeliveryStatus(UpdateDeliveryStatusRequest request) {
         Order order = orderRepository.findById(request.getOrderId())
-            .orElseThrow(() -> new RuntimeException("Order not found with id: " + request.getOrderId()));
+            .orElseThrow(() -> new NotFoundException("Order not found with id: " + request.getOrderId()));
 
         order.setDeliveryStatus(request.getStatus());
 

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import toughcircle.shop.exception.exceptions.NotFoundException;
 import toughcircle.shop.model.Entity.*;
 import toughcircle.shop.model.dto.ProductDto;
 import toughcircle.shop.model.dto.request.NewProductRequest;
@@ -34,7 +35,7 @@ public class ProductService {
     public Long saveProduct(NewProductRequest request) {
 
         Category category = categoryRepository.findById(request.getCategoryId())
-            .orElseThrow(() -> new RuntimeException("Category not found with categoryId: " + request.getCategoryId()));
+            .orElseThrow(() -> new NotFoundException("Category not found with categoryId: " + request.getCategoryId()));
 
         Product product = new Product();
         product.setName(request.getName());
@@ -101,7 +102,7 @@ public class ProductService {
         User user = tokenUserService.getUserByToken(token);
 
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found with productId: " + productId));
+            .orElseThrow(() -> new NotFoundException("Product not found with productId: " + productId));
 
         Optional<Like> like = likeRepository.findByUser_idAndProduct_id(user.getId(), productId);
 
@@ -117,11 +118,11 @@ public class ProductService {
     public void updateProduct(Long productId, NewProductRequest request) {
 
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found with productId: " + productId));
+            .orElseThrow(() -> new NotFoundException("Product not found with productId: " + productId));
 
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found with categoryId: " + request.getCategoryId()));
+                .orElseThrow(() -> new NotFoundException("Category not found with categoryId: " + request.getCategoryId()));
             product.setCategory(category);
         }
         if (request.getName() != null) {

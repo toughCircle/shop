@@ -2,6 +2,7 @@ package toughcircle.shop.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import toughcircle.shop.exception.exceptions.NotFoundException;
 import toughcircle.shop.model.Entity.User;
 import toughcircle.shop.repository.UserRepository;
 import toughcircle.shop.security.JwtUtil;
@@ -16,6 +17,6 @@ public class TokenUserService {
         String extractUsername = jwtUtil.extractUsername(token);
 
         return userRepository.findByEmail(extractUsername)
-            .orElseThrow(() -> new RuntimeException("User not found with email: " + extractUsername));
+            .orElseThrow(() -> new NotFoundException("User not found with email: " + extractUsername));
     }
 }

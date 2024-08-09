@@ -47,7 +47,7 @@ public class ProductController {
     }
 
     // 모든 상품 조회
-    @Operation(summary = "상품 리스트 조회", description = "상품 리스트를 조횧합니다.")
+    @Operation(summary = "상품 리스트 조회", description = "상품 리스트를 조회합니다.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "상품 조회 성공",
             content = @Content(schema = @Schema(implementation = Response.class))),

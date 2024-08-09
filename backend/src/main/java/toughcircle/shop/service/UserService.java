@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import toughcircle.shop.exception.exceptions.NotFoundException;
+import toughcircle.shop.exception.exceptions.UnauthorizedException;
 import toughcircle.shop.model.Entity.Cart;
 import toughcircle.shop.model.Entity.User;
 import toughcircle.shop.model.dto.LoginUserDto;
@@ -87,12 +89,12 @@ public class UserService {
         log.info(encodedPassword);
 
         User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new RuntimeException("User not found with email: " + request.getEmail()));
+            .orElseThrow(() -> new NotFoundException("User not found with email: " + request.getEmail()));
 
 
         boolean matches = passwordEncoder.matches(request.getPassword(), user.getPassword());
         if (!matches) {
-            throw new RuntimeException("Invalid Password");
+            throw new UnauthorizedException("Invalid Password");
         }
 
         String accessToken = jwtUtil.generateToken(request.getEmail());
@@ -113,7 +115,7 @@ public class UserService {
     public void forgetPassword(ResetPasswordRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new RuntimeException("User not found with email: " + request.getEmail()));
+            .orElseThrow(() -> new NotFoundException("User not found with email: " + request.getEmail()));
 
         String code = UUID.randomUUID().toString();
         log.debug("Reset password code: {}, email: {}", code, user.getEmail());
@@ -137,7 +139,7 @@ public class UserService {
         String email = redisService.find(request.getCode());
 
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found with code: " + request.getCode()));
+            .orElseThrow(() -> new NotFoundException("User not found with code: " + request.getCode()));
 
         String encodedPassword = passwordEncoder.encode(request.getNewPassword());
 
@@ -146,7 +148,6 @@ public class UserService {
 
     /**
      * 사용자 정보 조회
-     *
      * @param token 사용자 토큰
      * @return UserDto 사용자 정보
      */
@@ -155,7 +156,7 @@ public class UserService {
         String extractUsername = jwtUtil.extractUsername(token);
 
         User user = userRepository.findByEmail(extractUsername)
-            .orElseThrow(() -> new RuntimeException("User not found with email: " + extractUsername));
+            .orElseThrow(() -> new NotFoundException("User not found with email: " + extractUsername));
 
         return convertToDto(user);
     }
@@ -171,14 +172,14 @@ public class UserService {
         String username = jwtUtil.extractUsername(token);
 
         User user = userRepository.findByEmail(username)
-            .orElseThrow(() -> new RuntimeException("User not found with email: " + username));
+            .orElseThrow(() -> new NotFoundException("User not found with email: " + username));
 
         // 비밀번호 수정 정보가 포함되어있을 경우 비밀번호 수정
         if (request.getOldPassword() != null && request.getNewPassword() != null) {
             // 비밀번호 확인
             boolean matches = passwordEncoder.matches(request.getOldPassword(), user.getPassword());
             if (!matches) {
-                throw new RuntimeException("Invalid Password");
+                throw new UnauthorizedException("Invalid Password");
             }
 
             String encodedPassword = passwordEncoder.encode(request.getNewPassword());
@@ -202,7 +203,7 @@ public class UserService {
         String extractUsername = jwtUtil.extractUsername(token);
 
         User user = userRepository.findByEmail(extractUsername)
-            .orElseThrow(() -> new RuntimeException("User not found with email: " + extractUsername));
+            .orElseThrow(() -> new NotFoundException("User not found with email: " + extractUsername));
 
         userRepository.delete(user);
     }

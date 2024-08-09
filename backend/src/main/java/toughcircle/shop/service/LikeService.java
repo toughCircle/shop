@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import toughcircle.shop.exception.exceptions.NotFoundException;
 import toughcircle.shop.model.Entity.Like;
 import toughcircle.shop.model.Entity.Product;
 import toughcircle.shop.model.Entity.User;
@@ -37,7 +38,7 @@ public class LikeService {
         User user = getUserByToken(token);
 
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("product not found with productId: " + productId));
+            .orElseThrow(() -> new NotFoundException("product not found with productId: " + productId));
 
         Optional<Like> like = likeRepository.findByUser_idAndProduct_id(user.getId(), productId);
 
@@ -68,7 +69,7 @@ public class LikeService {
         String extractUsername = jwtUtil.extractUsername(token);
 
         return userRepository.findByEmail(extractUsername)
-            .orElseThrow(() -> new RuntimeException("User not found with emailㅈ: " + extractUsername));
+            .orElseThrow(() -> new NotFoundException("User not found with email: " + extractUsername));
     }
 
 }

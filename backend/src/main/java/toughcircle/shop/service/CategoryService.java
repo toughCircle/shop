@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import toughcircle.shop.exception.exceptions.NotFoundException;
 import toughcircle.shop.model.Entity.Category;
 import toughcircle.shop.model.Entity.Product;
 import toughcircle.shop.model.dto.CategoryDto;
@@ -41,7 +42,7 @@ public class CategoryService {
     @Transactional
     public void updateCategory(CategoryDto request) {
         Category category = categoryRepository.findById(request.getCategoryId())
-            .orElseThrow(() -> new RuntimeException("Category not found with categoryId: " + request.getCategoryId()));
+            .orElseThrow(() -> new NotFoundException("Category not found with categoryId: " + request.getCategoryId()));
 
         category.setName(request.getName());
     }
@@ -76,7 +77,7 @@ public class CategoryService {
     @Transactional
     public void deleteCategory(Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
-            .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
+            .orElseThrow(() -> new NotFoundException("Category not found with id: " + categoryId));
 
         List<Product> products = category.getProductList();
         for (Product product : products) {

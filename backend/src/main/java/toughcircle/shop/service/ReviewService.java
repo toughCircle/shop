@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import toughcircle.shop.exception.exceptions.NotFoundException;
 import toughcircle.shop.model.Entity.Product;
 import toughcircle.shop.model.Entity.Review;
 import toughcircle.shop.model.Entity.User;
@@ -37,7 +38,7 @@ public class ReviewService {
     private double calculateAverageScore(Long productId) {
 
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found with productId: " + productId));
+            .orElseThrow(() -> new NotFoundException("Product not found with productId: " + productId));
 
         List<Review> reviewList = reviewRepository.findByProductId(productId);
 
@@ -66,7 +67,7 @@ public class ReviewService {
         User user = tokenUserService.getUserByToken(token);
 
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found with productId: " + productId));
+            .orElseThrow(() -> new NotFoundException("Product not found with productId: " + productId));
 
         Review review = new Review();
         review.setUser(user);
@@ -92,7 +93,7 @@ public class ReviewService {
         List<Review> reviewList = reviewRepository.findByProductId(productId);
 
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found with productId: " + productId));
+            .orElseThrow(() -> new NotFoundException("Product not found with productId: " + productId));
 
         ReviewListResponse response = new ReviewListResponse();
         response.setMessage("Review List");
@@ -110,7 +111,7 @@ public class ReviewService {
     public ReviewDto convertToDto(Review review) {
 
         User user = userRepository.findById(review.getUser().getId())
-            .orElseThrow(() -> new RuntimeException("User not found with userId: " + review.getUser().getId()));
+            .orElseThrow(() -> new NotFoundException("User not found with userId: " + review.getUser().getId()));
 
         ReviewDto dto = new ReviewDto();
         dto.setReviewId(review.getId());
@@ -133,7 +134,7 @@ public class ReviewService {
      */
     public ReviewDto getReview(Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new RuntimeException("Review not found with reviewId: " + reviewId));
+            .orElseThrow(() -> new NotFoundException("Review not found with reviewId: " + reviewId));
 
         return convertToDto(review);
     }
@@ -146,7 +147,7 @@ public class ReviewService {
     @Transactional
     public void updateReview(Long reviewId, NewReviewRequest request) {
         Review review = reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new RuntimeException("Review not found with reviewId: " + reviewId));
+            .orElseThrow(() -> new NotFoundException("Review not found with reviewId: " + reviewId));
 
         review.setRating(request.getRating());
         review.setImage(request.getImage());
