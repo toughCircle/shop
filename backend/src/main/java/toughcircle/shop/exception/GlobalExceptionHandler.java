@@ -10,9 +10,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import toughcircle.shop.exception.exceptions.*;
 import toughcircle.shop.model.dto.response.ErrorResponse;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 

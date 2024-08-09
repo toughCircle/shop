@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
-import toughcircle.shop.model.Entity.Address;
 import toughcircle.shop.model.dto.AddressDto;
 
 @Data

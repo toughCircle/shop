@@ -36,7 +36,7 @@ public class ImageController {
         }
 
         try {
-            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
             Path filePath = Paths.get(uploadPath, fileName);
 
             File uploadDir = new File(uploadPath);
